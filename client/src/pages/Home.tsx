@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { UploadZone } from "@/components/UploadZone";
 import { ManualEntryForm, type ManualFields } from "@/components/ManualEntryForm";
 import { FieldCard } from "@/components/FieldCard";
+import { CorrectAndTeach } from "@/components/CorrectAndTeach";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import {
   loadKnowledgeBase,
@@ -149,6 +150,29 @@ export default function Home() {
     setSettings(next);
     saveSettings(next);
     setKb(loadKnowledgeBase());
+  };
+
+  /**
+   * Called by CorrectAndTeach when the user saves a corrected decoding rule.
+   * Persists to localStorage and fire-and-forgets a cloud push.
+   */
+  const handleTeach = (entry: import("@/lib/storage").ManufacturerEntry) => {
+    const slug = entry.name.trim().toLowerCase().replace(/\s+/g, " ");
+    const nextKb = { ...kb, [slug]: entry };
+    setKb(nextKb);
+    saveKnowledgeBase(nextKb);
+    toast.success("Pattern saved", {
+      description: `Decoding rule for ${entry.name} updated in the knowledge base.`,
+    });
+    // Cloud push (fire-and-forget)
+    void pushCloudEntry(entry).then((r) => {
+      if (r.ok) {
+        setCloudStatus("online");
+      } else {
+        setCloudStatus("offline");
+        toast.error("Cloud sync failed", { description: r.error });
+      }
+    });
   };
 
   const learnedCount = useMemo(() => Object.keys(kb).length, [kb]);
@@ -517,6 +541,23 @@ export default function Home() {
                 confidence={result.decoding?.confidence}
                 delayMs={240}
               />
+
+              {/* Correct & Teach panel — shown whenever we have a manufacturer */}
+              {result.extraction.manufacturer && (
+                <CorrectAndTeach
+                  manufacturer={result.extraction.manufacturer}
+                  currentEntry={
+                    kb[
+                      result.extraction.manufacturer
+                        .trim()
+                        .toLowerCase()
+                        .replace(/\s+/g, " ")
+                    ]
+                  }
+                  cloudStatus={cloudStatus}
+                  onSave={handleTeach}
+                />
+              )}
 
               {/* QR code data card */}
               {result.extraction.qrData && (
