@@ -36,6 +36,7 @@ import {
   saveSettings,
   getManufacturerEntry,
   upsertManufacturerEntry,
+  manufacturerKey,
   type AppSettings,
   type KnowledgeBase,
 } from "@/lib/storage";
@@ -52,6 +53,7 @@ import {
   mergeKnowledgeBases,
   pushCloudEntry,
 } from "@/lib/cloudKnowledge";
+import { applySeedKnowledge } from "@/lib/seedLoader";
 import { cn } from "@/lib/utils";
 
 type CloudStatus = "checking" | "online" | "offline";
@@ -106,20 +108,51 @@ export default function Home() {
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>("checking");
 
   // Open settings on first load if no API key is present, and pull the
-  // shared cloud knowledge base then merge with local storage.
+  // shared cloud knowledge base then merge with local storage. After the
+  // merge resolves (online or offline), apply the bundled seed knowledge
+  // base — inserting only entries the user/cloud doesn't already have —
+  // and push any freshly-seeded entries to the cloud so all clients
+  // benefit from the curated dataset.
   useEffect(() => {
     if (!settings.openaiApiKey) setSettingsOpen(true);
     let cancelled = false;
+
+    const seedAndPush = (base: KnowledgeBase, cloudOnline: boolean) => {
+      const { merged, seededCount, alreadyImported } = applySeedKnowledge(base);
+      setKb(merged);
+      saveKnowledgeBase(merged);
+      if (seededCount > 0 && !alreadyImported) {
+        toast.message(
+          `Seeded ${seededCount} manufacturer decoding rule${
+            seededCount === 1 ? "" : "s"
+          }`,
+          {
+            description:
+              "Pre-loaded HVAC, water heater, boiler, appliance, elevator, and fire/safety formats.",
+          },
+        );
+        if (cloudOnline) {
+          // Fire-and-forget upload of freshly-seeded entries so other
+          // clients receive the same seed data via the cloud KB.
+          for (const entry of Object.values(merged)) {
+            if (!base[manufacturerKey(entry.name)]) {
+              void pushCloudEntry(entry);
+            }
+          }
+        }
+      }
+    };
+
     fetchCloudKnowledge().then((res) => {
       if (cancelled) return;
+      const local = loadKnowledgeBase();
       if (res.ok) {
         setCloudStatus("online");
-        const local = loadKnowledgeBase();
         const merged = mergeKnowledgeBases(local, res.entries);
-        setKb(merged);
-        saveKnowledgeBase(merged);
+        seedAndPush(merged, true);
       } else {
         setCloudStatus("offline");
+        seedAndPush(local, false);
       }
     });
     return () => {
