@@ -1,0 +1,232 @@
+/*
+ * Equipment ID — "Industrial Dossier"
+ * Calm deep navy on paper white. Fraunces serif for values, Inter for UI,
+ * JetBrains Mono (uppercase, tracked) for field labels.
+ * Single accent: ember used only for confidence chips.
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Iowan Old Style", "Apple Garamond", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Industrial Dossier palette */
+  --background: oklch(0.995 0.002 240); /* paper white, faintly cool */
+  --foreground: oklch(0.18 0.04 250); /* near-ink */
+
+  --card: oklch(0.985 0.003 240); /* parchment tint for result cards */
+  --card-foreground: oklch(0.18 0.04 250);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.04 250);
+
+  /* Deep navy ink — #0B2545 */
+  --primary: oklch(0.27 0.07 255);
+  --primary-foreground: oklch(0.985 0.003 240);
+
+  --secondary: oklch(0.96 0.005 240);
+  --secondary-foreground: oklch(0.27 0.07 255);
+
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.48 0.02 250);
+
+  --accent: oklch(0.92 0.02 250);
+  --accent-foreground: oklch(0.27 0.07 255);
+
+  --destructive: oklch(0.55 0.21 28);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --border: oklch(0.9 0.01 240);
+  --input: oklch(0.9 0.01 240);
+  --ring: oklch(0.4 0.08 255);
+
+  --chart-1: oklch(0.27 0.07 255);
+  --chart-2: oklch(0.4 0.08 255);
+  --chart-3: oklch(0.55 0.06 255);
+  --chart-4: oklch(0.7 0.04 250);
+  --chart-5: oklch(0.85 0.02 250);
+
+  --sidebar: oklch(0.985 0.003 240);
+  --sidebar-foreground: oklch(0.18 0.04 250);
+  --sidebar-primary: oklch(0.27 0.07 255);
+  --sidebar-primary-foreground: oklch(0.985 0.003 240);
+  --sidebar-accent: oklch(0.96 0.005 240);
+  --sidebar-accent-foreground: oklch(0.27 0.07 255);
+  --sidebar-border: oklch(0.9 0.01 240);
+  --sidebar-ring: oklch(0.4 0.08 255);
+
+  --radius: 0.375rem; /* dossier feel: subtle, not pillowy */
+
+  /* Single accent for confidence chips only */
+  --ember: oklch(0.58 0.13 55);
+  --ember-soft: oklch(0.93 0.04 70);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    background-image:
+      radial-gradient(
+        circle at 50% 0%,
+        oklch(0.97 0.01 250) 0%,
+        transparent 60%
+      ),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.08 0 0 0 0 0.16 0 0 0 0.025 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-attachment: fixed;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* Mono uppercase label voice — used everywhere a "stamped" label appears */
+  .label-stamp {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .value-stamp {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    color: var(--primary);
+    font-size: 1.125rem;
+    letter-spacing: -0.005em;
+  }
+
+  /* Confidence chip — the single ember accent on the page */
+  .chip-confidence {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: var(--ember-soft);
+    color: var(--ember);
+    border: 1px solid color-mix(in oklch, var(--ember) 20%, transparent);
+  }
+  .chip-confidence[data-level="high"] {
+    background: oklch(0.95 0.04 150);
+    color: oklch(0.42 0.13 150);
+    border-color: color-mix(in oklch, oklch(0.5 0.13 150) 25%, transparent);
+  }
+  .chip-confidence[data-level="low"] {
+    background: oklch(0.96 0.03 30);
+    color: oklch(0.5 0.18 30);
+    border-color: color-mix(in oklch, oklch(0.5 0.18 30) 25%, transparent);
+  }
+
+  /* Calm motion — entering UI uses a strong ease-out */
+  .anim-rise {
+    animation: rise 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .anim-rise {
+      animation: none;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+}
