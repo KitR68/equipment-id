@@ -1,23 +1,31 @@
 /*
  * Equipment ID — Home page.
  *
- * Industrial Dossier layout: nameplate header, viewfinder upload zone,
- * navy "Analyze" button, then four stamped field cards for the results.
- * All inference happens in the browser using the user-provided OpenAI key.
+ * Industrial Dossier layout: nameplate header, mode tabs (Upload Photo /
+ * Manual Entry), input area, navy "Analyze" button, then four stamped
+ * field cards for the results.
  *
- * Flow:
- *   1. User drops/picks a JPG or PNG of a nameplate.
- *   2. Click Analyze → vision call extracts manufacturer/model/serial/etc.
- *   3. If we have a learned format for that manufacturer in localStorage,
- *      it is fed back to the LLM to decode the serial deterministically.
- *      Otherwise, the LLM researches the format and we save it.
- *   4. Four field cards animate in with stamped labels + confidence chip.
+ * Two analysis paths:
+ *   Upload Photo  → vision call extracts fields → serial decoding
+ *   Manual Entry  → skip vision, go straight to serial decoding
+ *
+ * In both cases the learning knowledge base in localStorage is consulted
+ * and updated.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Settings as SettingsIcon, ScanSearch, AlertTriangle, BookOpen } from "lucide-react";
+import {
+  Loader2,
+  Settings as SettingsIcon,
+  ScanSearch,
+  AlertTriangle,
+  BookOpen,
+  Upload,
+  PenLine,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UploadZone } from "@/components/UploadZone";
+import { ManualEntryForm, type ManualFields } from "@/components/ManualEntryForm";
 import { FieldCard } from "@/components/FieldCard";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import {
@@ -37,32 +45,48 @@ import {
   type NameplateExtraction,
   type SerialDecoding,
 } from "@/lib/openai";
+import { cn } from "@/lib/utils";
+
+type InputMode = "upload" | "manual";
 
 interface AnalysisResult {
   extraction: NameplateExtraction;
   decoding?: SerialDecoding;
   usedKnownFormat: boolean;
+  inputMode: InputMode;
   finishedAt: string;
 }
+
+const EMPTY_MANUAL: ManualFields = {
+  manufacturer: "",
+  modelNumber: "",
+  serialNumber: "",
+};
 
 export default function Home() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [kb, setKb] = useState<KnowledgeBase>(() => loadKnowledgeBase());
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // ── Input mode ──────────────────────────────────────────────────────────
+  const [inputMode, setInputMode] = useState<InputMode>("upload");
+
+  // ── Upload mode state ────────────────────────────────────────────────────
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // ── Manual mode state ────────────────────────────────────────────────────
+  const [manualFields, setManualFields] = useState<ManualFields>(EMPTY_MANUAL);
+
+  // ── Analysis state ───────────────────────────────────────────────────────
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
-  // Manage object URL lifecycle for the preview thumbnail.
+  // Object URL lifecycle for the thumbnail preview.
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null);
-      return;
-    }
+    if (!file) { setPreviewUrl(null); return; }
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
@@ -70,14 +94,24 @@ export default function Home() {
 
   // Open settings on first load if no API key is present.
   useEffect(() => {
-    if (!settings.openaiApiKey) {
-      setSettingsOpen(true);
-    }
+    if (!settings.openaiApiKey) setSettingsOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFileSelected = (f: File | null) => {
     setFile(f);
+    setResult(null);
+    setError(null);
+  };
+
+  const handleManualChange = (fields: ManualFields) => {
+    setManualFields(fields);
+    setResult(null);
+    setError(null);
+  };
+
+  const handleModeChange = (mode: InputMode) => {
+    setInputMode(mode);
     setResult(null);
     setError(null);
   };
@@ -90,25 +124,54 @@ export default function Home() {
 
   const learnedCount = useMemo(() => Object.keys(kb).length, [kb]);
 
+  // ── Can we submit? ───────────────────────────────────────────────────────
+  const canAnalyze = useMemo(() => {
+    if (analyzing) return false;
+    if (inputMode === "upload") return Boolean(file);
+    // Manual: need at least manufacturer + serial
+    return Boolean(manualFields.manufacturer.trim() && manualFields.serialNumber.trim());
+  }, [analyzing, inputMode, file, manualFields]);
+
+  // ── Core analysis logic ──────────────────────────────────────────────────
   const handleAnalyze = async () => {
-    if (!file) return;
+    if (!canAnalyze) return;
     if (!settings.openaiApiKey) {
       toast.error("Add your OpenAI API key in settings first.");
       setSettingsOpen(true);
       return;
     }
+
     setAnalyzing(true);
     setError(null);
     setResult(null);
-    try {
-      setProgress("Reading nameplate text…");
-      const dataUrl = await fileToDataUrl(file);
-      const extraction = await extractNameplate(
-        dataUrl,
-        settings.openaiApiKey,
-        settings.model,
-      );
 
+    try {
+      let extraction: NameplateExtraction;
+
+      if (inputMode === "upload" && file) {
+        // ── Path A: vision extraction ────────────────────────────────────
+        setProgress("Reading nameplate text…");
+        const dataUrl = await fileToDataUrl(file);
+        extraction = await extractNameplate(dataUrl, settings.openaiApiKey, settings.model);
+      } else {
+        // ── Path B: manual entry — build a synthetic extraction object ───
+        extraction = {
+          manufacturer: manualFields.manufacturer.trim() || null,
+          modelNumber: manualFields.modelNumber.trim() || null,
+          serialNumber: manualFields.serialNumber.trim() || null,
+          printedDate: null,
+          rawText: [
+            manualFields.manufacturer,
+            manualFields.modelNumber,
+            manualFields.serialNumber,
+          ]
+            .filter(Boolean)
+            .join(" | "),
+          notes: "Entered manually — no image was analyzed.",
+        };
+      }
+
+      // ── Serial decoding (both paths) ─────────────────────────────────────
       let decoding: SerialDecoding | undefined;
       let usedKnownFormat = false;
 
@@ -133,7 +196,6 @@ export default function Home() {
           },
         );
 
-        // Persist what we learned (or reinforce what we already knew).
         if (decoding.serialFormat) {
           const nextKb = upsertManufacturerEntry(kb, {
             name: extraction.manufacturer,
@@ -151,6 +213,7 @@ export default function Home() {
         extraction,
         decoding,
         usedKnownFormat,
+        inputMode,
         finishedAt: new Date().toISOString(),
       });
       setProgress("");
@@ -170,7 +233,6 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 border border-primary/60 bg-card flex items-center justify-center">
-              {/* Four "screw heads" — pure CSS rivets */}
               <span className="absolute top-0.5 left-0.5 w-1 h-1 rounded-full bg-primary/70" />
               <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-primary/70" />
               <span className="absolute bottom-0.5 left-0.5 w-1 h-1 rounded-full bg-primary/70" />
@@ -201,22 +263,60 @@ export default function Home() {
       {/* ── Main column ───────────────────────────────────────────────── */}
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">
-          {/* Intro line */}
           <p className="text-muted-foreground text-base leading-relaxed mb-8 max-w-2xl">
-            Upload a clear photo of an equipment dataplate. The system reads
-            the printed text, identifies the manufacturer, model, and serial
-            number, and decodes the manufacture date from the serial-number
-            format — learning new manufacturer formats as it goes.
+            Upload a photo of an equipment dataplate, or enter the details
+            manually. The system decodes the manufacture date from the serial
+            number — learning new manufacturer formats as it goes.
           </p>
 
-          {/* Upload + Analyze */}
+          {/* ── Mode tabs ─────────────────────────────────────────────── */}
+          <div
+            role="tablist"
+            aria-label="Input mode"
+            className="flex border border-border bg-card/50 mb-6 w-fit"
+          >
+            {(
+              [
+                { mode: "upload" as InputMode, icon: Upload, label: "Upload Photo" },
+                { mode: "manual" as InputMode, icon: PenLine, label: "Manual Entry" },
+              ] as const
+            ).map(({ mode, icon: Icon, label }) => (
+              <button
+                key={mode}
+                role="tab"
+                aria-selected={inputMode === mode}
+                type="button"
+                onClick={() => handleModeChange(mode)}
+                disabled={analyzing}
+                className={cn(
+                  "inline-flex items-center gap-2 px-5 py-2.5 label-stamp transition-colors duration-150",
+                  inputMode === mode
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-primary hover:bg-accent",
+                )}
+              >
+                <Icon size={13} />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Input area ────────────────────────────────────────────── */}
           <section className="space-y-5">
-            <UploadZone
-              file={file}
-              previewUrl={previewUrl}
-              onFileSelected={handleFileSelected}
-              disabled={analyzing}
-            />
+            {inputMode === "upload" ? (
+              <UploadZone
+                file={file}
+                previewUrl={previewUrl}
+                onFileSelected={handleFileSelected}
+                disabled={analyzing}
+              />
+            ) : (
+              <ManualEntryForm
+                fields={manualFields}
+                onChange={handleManualChange}
+                disabled={analyzing}
+              />
+            )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
               <div className="flex items-center gap-2 label-stamp text-muted-foreground">
@@ -227,7 +327,7 @@ export default function Home() {
               </div>
               <Button
                 onClick={handleAnalyze}
-                disabled={!file || analyzing}
+                disabled={!canAnalyze}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-transform duration-150 px-6 h-11 rounded-sm font-medium tracking-wide"
               >
                 {analyzing ? (
@@ -235,6 +335,8 @@ export default function Home() {
                     <Loader2 className="animate-spin mr-2" size={16} />
                     Analyzing…
                   </>
+                ) : inputMode === "manual" ? (
+                  "Look Up Date"
                 ) : (
                   "Analyze"
                 )}
@@ -249,16 +351,13 @@ export default function Home() {
 
             {error && (
               <div className="border border-destructive/40 bg-destructive/5 px-4 py-3 flex items-start gap-3 anim-rise">
-                <AlertTriangle
-                  size={16}
-                  className="text-destructive mt-0.5 shrink-0"
-                />
+                <AlertTriangle size={16} className="text-destructive mt-0.5 shrink-0" />
                 <div className="text-sm text-destructive">{error}</div>
               </div>
             )}
           </section>
 
-          {/* Results */}
+          {/* ── Results ───────────────────────────────────────────────── */}
           {result && (
             <section className="mt-12 space-y-4">
               <header className="flex items-end justify-between border-b border-border pb-3">
@@ -268,11 +367,18 @@ export default function Home() {
                     Extracted Fields
                   </h2>
                 </div>
-                {result.usedKnownFormat && (
-                  <span className="chip-confidence" data-level="high">
-                    Known format · KB hit
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {result.inputMode === "manual" && (
+                    <span className="chip-confidence" data-level="medium">
+                      Manual entry
+                    </span>
+                  )}
+                  {result.usedKnownFormat && (
+                    <span className="chip-confidence" data-level="high">
+                      Known format · KB hit
+                    </span>
+                  )}
+                </div>
               </header>
 
               <FieldCard
@@ -309,14 +415,15 @@ export default function Home() {
                 delayMs={180}
               />
 
-              {/* Learned format detail block */}
+              {/* Learned format detail */}
               {result.decoding?.serialFormat && (
                 <article
                   className="anim-rise border border-border bg-card px-5 py-4"
                   style={{ animationDelay: "240ms" }}
                 >
                   <div className="label-stamp mb-2">
-                    Serial-number format {result.usedKnownFormat ? "· recalled" : "· newly learned"}
+                    Serial-number format{" "}
+                    {result.usedKnownFormat ? "· recalled" : "· newly learned"}
                   </div>
                   <p className="text-sm text-foreground/90 leading-relaxed">
                     <span className="font-serif text-primary">Format. </span>
@@ -334,8 +441,8 @@ export default function Home() {
                 </article>
               )}
 
-              {/* Raw OCR — collapsible */}
-              {result.extraction.rawText && (
+              {/* Raw OCR — only shown for photo mode */}
+              {result.inputMode === "upload" && result.extraction.rawText && (
                 <details
                   className="anim-rise border border-border bg-card px-5 py-3"
                   style={{ animationDelay: "300ms" }}
