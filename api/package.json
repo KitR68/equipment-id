@@ -1,0 +1,17 @@
+{
+  "name": "equipment-id-api",
+  "version": "1.0.0",
+  "description": "Azure Functions API for the Equipment ID shared knowledge base.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.1",
+    "@azure/functions": "^4.5.1"
+  }
+}

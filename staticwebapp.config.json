@@ -1,7 +1,11 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,svg,png,jpg,jpeg,ico,webp,woff,woff2}"]
+    "exclude": [
+      "/assets/*",
+      "/api/*",
+      "/*.{css,js,svg,png,jpg,jpeg,ico,webp,woff,woff2}"
+    ]
   },
   "routes": [
     {
@@ -15,6 +19,11 @@
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       }
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"],
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
     }
   ],
   "mimeTypes": {

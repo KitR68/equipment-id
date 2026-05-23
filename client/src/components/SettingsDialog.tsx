@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Eye, EyeOff } from "lucide-react";
+import { Trash2, Eye, EyeOff, Cloud, CloudOff, Loader2 } from "lucide-react";
 import {
   loadKnowledgeBase,
   saveKnowledgeBase,
@@ -24,7 +24,14 @@ import {
   type AppSettings,
   type KnowledgeBase,
 } from "@/lib/storage";
+import {
+  fetchCloudKnowledge,
+  deleteCloudEntry,
+  mergeKnowledgeBases,
+} from "@/lib/cloudKnowledge";
 import { toast } from "sonner";
+
+type CloudStatus = "idle" | "checking" | "online" | "offline";
 
 interface Props {
   open: boolean;
@@ -38,14 +45,36 @@ export function SettingsDialog({ open, onOpenChange, settings, onSave }: Props) 
   const [model, setModel] = useState(settings.model);
   const [reveal, setReveal] = useState(false);
   const [kb, setKb] = useState<KnowledgeBase>({});
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>("idle");
+  // cloudError state slot reserved for future surfacing
+  const [, setCloudError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) {
-      setApiKey(settings.openaiApiKey);
-      setModel(settings.model);
-      setKb(loadKnowledgeBase());
-      setReveal(false);
-    }
+    if (!open) return;
+    setApiKey(settings.openaiApiKey);
+    setModel(settings.model);
+    setKb(loadKnowledgeBase());
+    setReveal(false);
+
+    let cancelled = false;
+    setCloudStatus("checking");
+    setCloudError(null);
+    fetchCloudKnowledge().then((res) => {
+      if (cancelled) return;
+      if (res.ok) {
+        setCloudStatus("online");
+        const local = loadKnowledgeBase();
+        const merged = mergeKnowledgeBases(local, res.entries);
+        setKb(merged);
+        saveKnowledgeBase(merged);
+      } else {
+        setCloudStatus("offline");
+        setCloudError(res.error ?? null);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, settings]);
 
   const handleSave = () => {
@@ -54,11 +83,17 @@ export function SettingsDialog({ open, onOpenChange, settings, onSave }: Props) 
     onOpenChange(false);
   };
 
-  const handleDelete = (name: string) => {
+  const handleDelete = async (name: string) => {
     const next = deleteManufacturerEntry(kb, name);
     setKb(next);
     saveKnowledgeBase(next);
     toast.message(`Removed ${name} from knowledge base`);
+    if (cloudStatus === "online") {
+      const res = await deleteCloudEntry(name);
+      if (!res.ok) {
+        toast.error("Cloud delete failed", { description: res.error });
+      }
+    }
   };
 
   const handleClearAll = () => {
@@ -84,6 +119,36 @@ export function SettingsDialog({ open, onOpenChange, settings, onSave }: Props) 
             server proxies the request.
           </DialogDescription>
         </DialogHeader>
+
+        <div
+          className="flex items-start gap-3 border border-border bg-secondary/40 px-4 py-3"
+          aria-live="polite"
+        >
+          {cloudStatus === "checking" && (
+            <Loader2 size={14} className="mt-0.5 animate-spin text-muted-foreground" />
+          )}
+          {cloudStatus === "online" && (
+            <Cloud size={14} className="mt-0.5 text-primary" />
+          )}
+          {(cloudStatus === "offline" || cloudStatus === "idle") && (
+            <CloudOff size={14} className="mt-0.5 text-muted-foreground" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="label-stamp text-primary">
+              {cloudStatus === "checking" && "Checking shared knowledge base…"}
+              {cloudStatus === "online" && "Knowledge base · cloud-synced"}
+              {cloudStatus === "offline" && "Knowledge base · local only"}
+              {cloudStatus === "idle" && "Knowledge base · local"}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              {cloudStatus === "online"
+                ? "Learned manufacturer formats are shared via Azure Table Storage so every device benefits from the same knowledge."
+                : cloudStatus === "offline"
+                  ? "The shared knowledge API is unreachable. New formats are still saved locally and will sync once the API is available."
+                  : "Connecting to the shared knowledge base."}
+            </p>
+          </div>
+        </div>
 
         <div className="space-y-6 py-2">
           <div className="space-y-2">

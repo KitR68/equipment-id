@@ -46,7 +46,14 @@ import {
   type SerialDecoding,
 } from "@/lib/openai";
 import { decodeQrFromFile } from "@/lib/qr";
+import {
+  fetchCloudKnowledge,
+  mergeKnowledgeBases,
+  pushCloudEntry,
+} from "@/lib/cloudKnowledge";
 import { cn } from "@/lib/utils";
+
+type CloudStatus = "checking" | "online" | "offline";
 
 type InputMode = "upload" | "manual";
 
@@ -94,9 +101,29 @@ export default function Home() {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // Open settings on first load if no API key is present.
+  // Cloud sync state.
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>("checking");
+
+  // Open settings on first load if no API key is present, and pull the
+  // shared cloud knowledge base then merge with local storage.
   useEffect(() => {
     if (!settings.openaiApiKey) setSettingsOpen(true);
+    let cancelled = false;
+    fetchCloudKnowledge().then((res) => {
+      if (cancelled) return;
+      if (res.ok) {
+        setCloudStatus("online");
+        const local = loadKnowledgeBase();
+        const merged = mergeKnowledgeBases(local, res.entries);
+        setKb(merged);
+        saveKnowledgeBase(merged);
+      } else {
+        setCloudStatus("offline");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -229,6 +256,18 @@ export default function Home() {
           });
           setKb(nextKb);
           saveKnowledgeBase(nextKb);
+          // Push to the shared cloud knowledge base (fire-and-forget).
+          const slug = extraction.manufacturer.trim().toLowerCase().replace(/\s+/g, " ");
+          const justSaved = nextKb[slug];
+          if (justSaved) {
+            void pushCloudEntry(justSaved).then((r) => {
+              if (r.ok) {
+                setCloudStatus("online");
+              } else {
+                setCloudStatus("offline");
+              }
+            });
+          }
         }
       }
 
@@ -349,11 +388,30 @@ export default function Home() {
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-              <div className="flex items-center gap-2 label-stamp text-muted-foreground">
-                <BookOpen size={12} />
-                {learnedCount === 0
-                  ? "Knowledge base empty"
-                  : `${learnedCount} manufacturer${learnedCount === 1 ? "" : "s"} learned`}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 label-stamp text-muted-foreground">
+                  <BookOpen size={12} />
+                  {learnedCount === 0
+                    ? "Knowledge base empty"
+                    : `${learnedCount} manufacturer${learnedCount === 1 ? "" : "s"} learned`}
+                </div>
+                <span
+                  className="label-stamp text-muted-foreground"
+                  data-status={cloudStatus}
+                  title={
+                    cloudStatus === "online"
+                      ? "Shared knowledge base reachable"
+                      : cloudStatus === "offline"
+                        ? "Cloud knowledge base unreachable; entries saved locally"
+                        : "Connecting to cloud knowledge base"
+                  }
+                >
+                  {cloudStatus === "online"
+                    ? "· cloud-synced"
+                    : cloudStatus === "offline"
+                      ? "· local only"
+                      : "· syncing…"}
+                </span>
               </div>
               <Button
                 onClick={handleAnalyze}
