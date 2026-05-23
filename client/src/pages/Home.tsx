@@ -2,15 +2,14 @@
  * Equipment ID — Home page.
  *
  * Industrial Dossier layout: nameplate header, mode tabs (Upload Photo /
- * Manual Entry), input area, navy "Analyze" button, then four stamped
- * field cards for the results.
+ * Manual Entry), input area, navy "Analyze" button, then stamped field
+ * cards for the results.
  *
  * Two analysis paths:
- *   Upload Photo  → vision call extracts fields → serial decoding
+ *   Upload Photo  → QR scan (client-side) + vision extraction → serial decoding
  *   Manual Entry  → skip vision, go straight to serial decoding
  *
- * In both cases the learning knowledge base in localStorage is consulted
- * and updated.
+ * New fields: Date Code (both modes) and QR Code data (upload mode only).
  */
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -21,6 +20,7 @@ import {
   BookOpen,
   Upload,
   PenLine,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ import {
   type NameplateExtraction,
   type SerialDecoding,
 } from "@/lib/openai";
+import { decodeQrFromFile } from "@/lib/qr";
 import { cn } from "@/lib/utils";
 
 type InputMode = "upload" | "manual";
@@ -61,6 +62,7 @@ const EMPTY_MANUAL: ManualFields = {
   manufacturer: "",
   modelNumber: "",
   serialNumber: "",
+  dateCode: "",
 };
 
 export default function Home() {
@@ -128,7 +130,6 @@ export default function Home() {
   const canAnalyze = useMemo(() => {
     if (analyzing) return false;
     if (inputMode === "upload") return Boolean(file);
-    // Manual: need at least manufacturer + serial
     return Boolean(manualFields.manufacturer.trim() && manualFields.serialNumber.trim());
   }, [analyzing, inputMode, file, manualFields]);
 
@@ -149,21 +150,41 @@ export default function Home() {
       let extraction: NameplateExtraction;
 
       if (inputMode === "upload" && file) {
-        // ── Path A: vision extraction ────────────────────────────────────
-        setProgress("Reading nameplate text…");
+        // ── Path A: QR scan then vision extraction ───────────────────────
+        setProgress("Scanning for QR code…");
+        const qrData = await decodeQrFromFile(file);
+
+        if (qrData) {
+          setProgress("QR code found — reading nameplate text…");
+        } else {
+          setProgress("Reading nameplate text…");
+        }
+
         const dataUrl = await fileToDataUrl(file);
-        extraction = await extractNameplate(dataUrl, settings.openaiApiKey, settings.model);
+        extraction = await extractNameplate(
+          dataUrl,
+          settings.openaiApiKey,
+          settings.model,
+          qrData,
+        );
+        // Ensure qrData is stored even if the model didn't echo it back
+        if (qrData && !extraction.qrData) {
+          extraction = { ...extraction, qrData };
+        }
       } else {
-        // ── Path B: manual entry — build a synthetic extraction object ───
+        // ── Path B: manual entry — synthetic extraction object ───────────
         extraction = {
           manufacturer: manualFields.manufacturer.trim() || null,
           modelNumber: manualFields.modelNumber.trim() || null,
           serialNumber: manualFields.serialNumber.trim() || null,
+          dateCode: manualFields.dateCode.trim() || null,
           printedDate: null,
+          qrData: null,
           rawText: [
             manualFields.manufacturer,
             manualFields.modelNumber,
             manualFields.serialNumber,
+            manualFields.dateCode,
           ]
             .filter(Boolean)
             .join(" | "),
@@ -191,7 +212,9 @@ export default function Home() {
             manufacturer: extraction.manufacturer,
             modelNumber: extraction.modelNumber,
             serialNumber: extraction.serialNumber,
+            dateCode: extraction.dateCode,
             printedDate: extraction.printedDate,
+            qrData: extraction.qrData,
             knownEntry,
           },
         );
@@ -265,8 +288,9 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">
           <p className="text-muted-foreground text-base leading-relaxed mb-8 max-w-2xl">
             Upload a photo of an equipment dataplate, or enter the details
-            manually. The system decodes the manufacture date from the serial
-            number — learning new manufacturer formats as it goes.
+            manually. QR codes in photos are automatically detected and decoded.
+            The system decodes the manufacture date from the serial number —
+            learning new manufacturer formats as it goes.
           </p>
 
           {/* ── Mode tabs ─────────────────────────────────────────────── */}
@@ -304,12 +328,18 @@ export default function Home() {
           {/* ── Input area ────────────────────────────────────────────── */}
           <section className="space-y-5">
             {inputMode === "upload" ? (
-              <UploadZone
-                file={file}
-                previewUrl={previewUrl}
-                onFileSelected={handleFileSelected}
-                disabled={analyzing}
-              />
+              <>
+                <UploadZone
+                  file={file}
+                  previewUrl={previewUrl}
+                  onFileSelected={handleFileSelected}
+                  disabled={analyzing}
+                />
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <QrCode size={12} className="shrink-0" />
+                  QR codes in the photo are automatically detected and used to assist identification.
+                </p>
+              </>
             ) : (
               <ManualEntryForm
                 fields={manualFields}
@@ -367,7 +397,12 @@ export default function Home() {
                     Extracted Fields
                   </h2>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {result.extraction.qrData && (
+                    <span className="chip-confidence" data-level="high">
+                      QR decoded
+                    </span>
+                  )}
                   {result.inputMode === "manual" && (
                     <span className="chip-confidence" data-level="medium">
                       Manual entry
@@ -397,6 +432,16 @@ export default function Home() {
                 delayMs={120}
               />
               <FieldCard
+                label="Date Code"
+                value={result.extraction.dateCode}
+                determination={
+                  result.extraction.dateCode
+                    ? "Date code extracted from the nameplate."
+                    : undefined
+                }
+                delayMs={180}
+              />
+              <FieldCard
                 label="Manufacture Date"
                 value={
                   result.decoding?.manufactureDate ??
@@ -412,14 +457,35 @@ export default function Home() {
                       : undefined)
                 }
                 confidence={result.decoding?.confidence}
-                delayMs={180}
+                delayMs={240}
               />
+
+              {/* QR code data card */}
+              {result.extraction.qrData && (
+                <article
+                  className="anim-rise border border-border bg-card grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr]"
+                  style={{ animationDelay: "300ms" }}
+                >
+                  <div className="border-r border-border bg-secondary/40 px-4 py-5 flex items-start gap-2">
+                    <QrCode size={13} className="text-primary mt-0.5 shrink-0" />
+                    <span className="label-stamp">QR Code</span>
+                  </div>
+                  <div className="px-5 py-5 min-w-0">
+                    <p className="font-mono text-xs text-foreground/90 break-all leading-relaxed">
+                      {result.extraction.qrData}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Decoded from the image and used to assist field extraction.
+                    </p>
+                  </div>
+                </article>
+              )}
 
               {/* Learned format detail */}
               {result.decoding?.serialFormat && (
                 <article
                   className="anim-rise border border-border bg-card px-5 py-4"
-                  style={{ animationDelay: "240ms" }}
+                  style={{ animationDelay: "360ms" }}
                 >
                   <div className="label-stamp mb-2">
                     Serial-number format{" "}
@@ -445,7 +511,7 @@ export default function Home() {
               {result.inputMode === "upload" && result.extraction.rawText && (
                 <details
                   className="anim-rise border border-border bg-card px-5 py-3"
-                  style={{ animationDelay: "300ms" }}
+                  style={{ animationDelay: "420ms" }}
                 >
                   <summary className="label-stamp cursor-pointer text-muted-foreground hover:text-primary transition-colors">
                     Raw nameplate text

@@ -1,9 +1,7 @@
 /*
  * Equipment ID — ManualEntryForm.
- * Industrial Dossier styling: label-stamp headers, Fraunces values, no
- * rounded-pill anything. Lets the user type manufacturer / model / serial
- * directly. The parent skips the vision step and goes straight to serial
- * decoding when this form is submitted.
+ * Industrial Dossier styling: label-stamp headers, Fraunces values.
+ * Fields: Manufacturer, Model Number, Serial Number, Date Code.
  */
 import { Input } from "@/components/ui/input";
 
@@ -11,6 +9,7 @@ export interface ManualFields {
   manufacturer: string;
   modelNumber: string;
   serialNumber: string;
+  dateCode: string;
 }
 
 interface Props {
@@ -20,16 +19,18 @@ interface Props {
 }
 
 export function ManualEntryForm({ fields, onChange, disabled }: Props) {
-  const set = (key: keyof ManualFields) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ ...fields, [key]: e.target.value });
+  const set =
+    (key: keyof ManualFields) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      onChange({ ...fields, [key]: e.target.value });
 
   return (
-    <div className="border border-border bg-card/50 p-6 space-y-5">
-      {/* Corner ticks — match the upload zone aesthetic */}
-      <div className="relative pointer-events-none">
-        <span className="absolute -top-6 -left-6 w-3 h-3 border-l border-t border-primary/40" />
-        <span className="absolute -top-6 -right-6 w-3 h-3 border-r border-t border-primary/40" />
-      </div>
+    <div className="border border-border bg-card/50 p-6 space-y-5 relative">
+      {/* Corner ticks */}
+      <span className="absolute top-0 left-0 w-3 h-3 border-l border-t border-primary/40 pointer-events-none" />
+      <span className="absolute top-0 right-0 w-3 h-3 border-r border-t border-primary/40 pointer-events-none" />
+      <span className="absolute bottom-0 left-0 w-3 h-3 border-l border-b border-primary/40 pointer-events-none" />
+      <span className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-primary/40 pointer-events-none" />
 
       <div className="space-y-1.5">
         <label htmlFor="me-manufacturer" className="label-stamp block">
@@ -79,10 +80,25 @@ export function ManualEntryForm({ fields, onChange, disabled }: Props) {
         </p>
       </div>
 
-      {/* Bottom corner ticks */}
-      <div className="relative pointer-events-none h-0">
-        <span className="absolute -bottom-6 -left-6 w-3 h-3 border-l border-b border-primary/40" />
-        <span className="absolute -bottom-6 -right-6 w-3 h-3 border-r border-b border-primary/40" />
+      <div className="space-y-1.5">
+        <label htmlFor="me-datecode" className="label-stamp block">
+          Date Code
+          <span className="ml-2 text-xs font-sans normal-case tracking-normal text-muted-foreground">
+            (optional)
+          </span>
+        </label>
+        <Input
+          id="me-datecode"
+          value={fields.dateCode}
+          onChange={set("dateCode")}
+          placeholder="e.g. 2305, A14, 0519, WK23-18"
+          disabled={disabled}
+          className="font-mono text-sm text-primary placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground"
+          spellCheck={false}
+        />
+        <p className="text-xs text-muted-foreground">
+          A short alphanumeric code stamped separately from the serial number that encodes the manufacture date.
+        </p>
       </div>
     </div>
   );

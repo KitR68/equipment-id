@@ -3,12 +3,14 @@
  *
  * Two LLM round trips happen per analysis:
  *
- *   1. extractNameplate(image, apiKey, model)
+ *   1. extractNameplate(image, apiKey, model, qrData?)
  *      Vision call. Reads the photo of the equipment nameplate and returns
- *      structured fields (manufacturer, model, serial, plus any visibly
- *      printed manufacture date and the raw OCR text).
+ *      structured fields (manufacturer, model, serial, date code, any
+ *      visibly printed manufacture date, and the raw OCR text).
+ *      If a QR code was decoded client-side, its content is appended to
+ *      the prompt so the model can use it to fill in or confirm fields.
  *
- *   2. decodeSerial({manufacturer, serial, model, knownEntry, ...})
+ *   2. decodeSerial({manufacturer, serial, model, dateCode, knownEntry, ...})
  *      Reasoning call. If we already have a learned format for that
  *      manufacturer, we feed that format back to the model so it decodes
  *      deterministically. Otherwise we ask the model to research the
@@ -28,7 +30,9 @@ export interface NameplateExtraction {
   manufacturer: string | null;
   modelNumber: string | null;
   serialNumber: string | null;
-  printedDate: string | null;
+  dateCode: string | null;       // date code stamped on the plate (e.g. "2305", "A14", "0519")
+  printedDate: string | null;    // explicitly printed manufacture date
+  qrData: string | null;         // raw decoded QR code content (if any)
   rawText: string;
   notes?: string;
 }
@@ -41,10 +45,6 @@ export interface SerialDecoding {
   dateDecoding: string;
   modelFormat?: string;
   sources?: string[];
-}
-
-export interface AnalyzeContext {
-  knownEntry?: ManufacturerEntry;
 }
 
 function stripFences(text: string): string {
@@ -72,7 +72,7 @@ async function chat(opts: {
     body: JSON.stringify({
       model: opts.model,
       messages: opts.messages,
-      max_tokens: opts.maxTokens ?? 800,
+      max_tokens: opts.maxTokens ?? 900,
       temperature: 0.1,
       ...(opts.responseJson
         ? { response_format: { type: "json_object" } }
@@ -97,6 +97,7 @@ export async function extractNameplate(
   imageDataUrl: string,
   apiKey: string,
   model: string,
+  qrData?: string | null,
 ): Promise<NameplateExtraction> {
   const system = [
     "You are a precise OCR + extraction assistant for industrial equipment nameplates.",
@@ -105,29 +106,48 @@ export async function extractNameplate(
     "Never invent values. If a field is not legible or not present, return null.",
   ].join(" ");
 
+  const qrBlock = qrData
+    ? [
+        "",
+        `A QR code was detected in this image. Its decoded content is:`,
+        `  "${qrData}"`,
+        "Use this data to help fill in or confirm fields (manufacturer, model,",
+        "serial, date code). If the QR content contains a URL, note any product",
+        "identifiers embedded in it.",
+      ].join("\n")
+    : "";
+
   const userText = [
     "Extract the following fields from this equipment nameplate photo and",
     "return JSON with this exact shape:",
     "{",
-    '  "manufacturer": string | null,        // brand or maker, e.g. "Carrier"',
-    '  "modelNumber":  string | null,        // exact model/part number as printed',
-    '  "serialNumber": string | null,        // exact serial as printed',
-    '  "printedDate":  string | null,        // any explicitly printed date (mfg date, year of manufacture)',
-    '  "rawText":      string,               // every line of text you can read, joined with " | "',
-    '  "notes":        string | null         // any caveats (glare, partial text, multiple plates, etc.)',
+    '  "manufacturer": string | null,   // brand or maker, e.g. "Carrier"',
+    '  "modelNumber":  string | null,   // exact model/part number as printed',
+    '  "serialNumber": string | null,   // exact serial as printed',
+    '  "dateCode":     string | null,   // date code stamped or printed on the plate',
+    '                                   // (separate from the serial; e.g. "2305", "A14", "0519", "WK23-18")',
+    '                                   // return null if no distinct date code field is visible',
+    '  "printedDate":  string | null,   // any explicitly printed manufacture date (month/year or full date)',
+    '  "rawText":      string,          // every line of text you can read, joined with " | "',
+    '  "notes":        string | null    // any caveats (glare, partial text, multiple plates, QR content used, etc.)',
     "}",
     "Rules:",
-    "- Preserve original casing and punctuation for model/serial numbers.",
+    "- Preserve original casing and punctuation for model/serial/date code.",
     "- Do not include UL listings, voltage, refrigerant codes, or capacity in the model number.",
     "- If the plate shows multiple model/serial pairs, choose the primary equipment plate.",
-    "- Return JSON only — no prose, no code fences.",
-  ].join("\n");
+    "- A date code is a short alphanumeric field that encodes the manufacture date separately",
+    "  from the serial number (common on HVAC, motors, and industrial equipment).",
+    qrBlock,
+    "Return JSON only — no prose, no code fences.",
+  ]
+    .filter((l) => l !== undefined)
+    .join("\n");
 
   const content = await chat({
     apiKey,
     model,
     responseJson: true,
-    maxTokens: 900,
+    maxTokens: 1000,
     messages: [
       { role: "system", content: system },
       {
@@ -145,7 +165,9 @@ export async function extractNameplate(
     manufacturer: parsed.manufacturer ?? null,
     modelNumber: parsed.modelNumber ?? null,
     serialNumber: parsed.serialNumber ?? null,
+    dateCode: parsed.dateCode ?? null,
     printedDate: parsed.printedDate ?? null,
+    qrData: qrData ?? null,
     rawText: parsed.rawText ?? "",
     notes: parsed.notes ?? undefined,
   };
@@ -158,12 +180,21 @@ export async function decodeSerial(
     manufacturer: string;
     modelNumber: string | null;
     serialNumber: string;
+    dateCode: string | null;
     printedDate: string | null;
+    qrData?: string | null;
     knownEntry?: ManufacturerEntry;
   },
 ): Promise<SerialDecoding> {
-  const { manufacturer, modelNumber, serialNumber, printedDate, knownEntry } =
-    args;
+  const {
+    manufacturer,
+    modelNumber,
+    serialNumber,
+    dateCode,
+    printedDate,
+    qrData,
+    knownEntry,
+  } = args;
 
   const system = [
     "You are an industrial equipment historian who decodes manufacturer",
@@ -193,24 +224,30 @@ export async function decodeSerial(
         "ALSO return the format you used so it can be saved for next time.",
       ].join("\n");
 
+  const qrBlock = qrData
+    ? `\nQR code content from the nameplate image: "${qrData}"\nUse this to confirm or supplement the manufacture date if it contains date information.`
+    : "";
+
   const userText = [
     `Manufacturer: ${manufacturer}`,
     `Model number: ${modelNumber ?? "(unknown)"}`,
     `Serial number: ${serialNumber}`,
+    `Date code on plate: ${dateCode ?? "(none)"}`,
     `Printed date on plate: ${printedDate ?? "(none)"}`,
+    qrBlock,
     knownBlock,
     "",
     "Return JSON with this exact shape:",
     "{",
     '  "manufactureDate": string | null,   // ISO-ish, e.g. "2014-07" or "Week 23 of 2018"; null if undeterminable',
-    '  "determination":   string,          // 1-3 sentences explaining HOW the date was derived from the serial',
+    '  "determination":   string,          // 1-3 sentences explaining HOW the date was derived',
     '  "confidence":      "high" | "medium" | "low",',
     '  "serialFormat":    string,          // concise description of this manufacturer\'s serial format',
     '  "dateDecoding":    string,          // exactly which characters encode the date and how',
     '  "modelFormat":     string | null,   // optional notes on model number conventions',
     '  "sources":         string[]         // 0-3 source names or URLs you relied on',
     "}",
-    "If a printed date was provided, prefer it but still return the format.",
+    "If a date code or printed date was provided, prefer it but still return the serial format.",
     "Return JSON only — no prose, no code fences.",
   ].join("\n");
 
@@ -218,7 +255,7 @@ export async function decodeSerial(
     apiKey,
     model,
     responseJson: true,
-    maxTokens: 700,
+    maxTokens: 800,
     messages: [
       { role: "system", content: system },
       { role: "user", content: userText },
