@@ -73,6 +73,7 @@ const EMPTY_MANUAL: ManualFields = {
   modelNumber: "",
   serialNumber: "",
   dateCode: "",
+  prodDate: "",
 };
 
 export default function Home() {
@@ -262,6 +263,7 @@ export default function Home() {
           modelNumber: manualFields.modelNumber.trim() || null,
           serialNumber: manualFields.serialNumber.trim() || null,
           dateCode: manualFields.dateCode.trim() || null,
+          prodDate: manualFields.prodDate.trim() || null,
           printedDate: null,
           qrData: null,
           rawText: [
@@ -269,6 +271,7 @@ export default function Home() {
             manualFields.modelNumber,
             manualFields.serialNumber,
             manualFields.dateCode,
+            manualFields.prodDate,
           ]
             .filter(Boolean)
             .join(" | "),
@@ -297,6 +300,7 @@ export default function Home() {
             modelNumber: extraction.modelNumber,
             serialNumber: extraction.serialNumber,
             dateCode: extraction.dateCode,
+            prodDate: extraction.prodDate,
             printedDate: extraction.printedDate,
             qrData: extraction.qrData,
             knownEntry,
@@ -518,6 +522,11 @@ export default function Home() {
                       QR decoded
                     </span>
                   )}
+                  {result.extraction.prodDate && (
+                    <span className="chip-confidence" data-level="high">
+                      Prod date found
+                    </span>
+                  )}
                   {result.inputMode === "manual" && (
                     <span className="chip-confidence" data-level="medium">
                       Manual entry
@@ -555,6 +564,17 @@ export default function Home() {
                     : undefined
                 }
                 delayMs={180}
+              />
+              <FieldCard
+                label="Prod Date"
+                value={result.extraction.prodDate}
+                determination={
+                  result.extraction.prodDate
+                    ? "Production date found in a labelled PROD DATE / MFG DATE field on the nameplate. Used as the primary manufacture date when present."
+                    : undefined
+                }
+                confidence={result.extraction.prodDate ? "high" : undefined}
+                delayMs={210}
               />
               <FieldCard
                 label="Manufacture Date"

@@ -1,7 +1,7 @@
 /*
  * Equipment ID — ManualEntryForm.
  * Industrial Dossier styling: label-stamp headers, Fraunces values.
- * Fields: Manufacturer, Model Number, Serial Number, Date Code.
+ * Fields: Manufacturer, Model Number, Serial Number, Date Code, Prod Date.
  */
 import { Input } from "@/components/ui/input";
 
@@ -10,6 +10,7 @@ export interface ManualFields {
   modelNumber: string;
   serialNumber: string;
   dateCode: string;
+  prodDate: string;
 }
 
 interface Props {
@@ -98,6 +99,28 @@ export function ManualEntryForm({ fields, onChange, disabled }: Props) {
         />
         <p className="text-xs text-muted-foreground">
           A short alphanumeric code stamped separately from the serial number that encodes the manufacture date.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="me-proddate" className="label-stamp block">
+          Prod Date
+          <span className="ml-2 text-xs font-sans normal-case tracking-normal text-muted-foreground">
+            (optional — from PROD DATE / MFG DATE label)
+          </span>
+        </label>
+        <Input
+          id="me-proddate"
+          value={fields.prodDate}
+          onChange={set("prodDate")}
+          placeholder="e.g. 20230914, 2023-09-14, 09/2023, SEP 2023"
+          disabled={disabled}
+          className="font-mono text-sm text-primary placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground"
+          spellCheck={false}
+        />
+        <p className="text-xs text-muted-foreground">
+          Enter the value from a labelled PROD DATE, MFG DATE, DATE OF MFG, or similar field
+          exactly as printed. When present, this is used as the primary manufacture date.
         </p>
       </div>
     </div>
