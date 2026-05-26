@@ -58,6 +58,12 @@ export interface ManufacturerEntry {
   updatedAt: string;
   /** Number of times this entry has been used to decode a serial. */
   usageCount: number;
+  /**
+   * Optional list of alternate manufacturer names that should resolve to
+   * this entry (e.g. brand variants, legacy names, abbreviations).
+   * Each alias is stored as a normalised key (same transform as manufacturerKey).
+   */
+  aliases?: string[];
 }
 
 export type KnowledgeBase = Record<string, ManufacturerEntry>;
@@ -86,7 +92,17 @@ export function getManufacturerEntry(
 ): ManufacturerEntry | undefined {
   const key = manufacturerKey(name);
   if (!key) return undefined;
-  return kb[key];
+  // Direct key match
+  if (kb[key]) return kb[key];
+  // Alias scan: check every entry's aliases array for a match
+  for (const entry of Object.values(kb)) {
+    if (entry.aliases) {
+      for (const alias of entry.aliases) {
+        if (manufacturerKey(alias) === key) return entry;
+      }
+    }
+  }
+  return undefined;
 }
 
 export function upsertManufacturerEntry(

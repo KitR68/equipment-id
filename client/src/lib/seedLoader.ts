@@ -24,7 +24,7 @@ interface SeedFile {
   entries: Record<string, ManufacturerEntry>;
 }
 
-const SEED_FLAG_KEY = "equipment-id:seed-imported:v1";
+const SEED_FLAG_KEY = "equipment-id:seed-imported:v2";
 
 const seed = seedRaw as SeedFile;
 
@@ -64,6 +64,18 @@ export function applySeedKnowledge(
       updatedAt: entry.updatedAt,
     };
     seededCount += 1;
+
+    // Also register each alias key pointing to the same entry so that
+    // alias lookups in getManufacturerEntry work without a full alias scan
+    // (belt-and-suspenders; the alias scan in storage.ts is the fallback).
+    if (entry.aliases) {
+      for (const alias of entry.aliases) {
+        const aliasKey = manufacturerKey(alias);
+        if (aliasKey && !merged[aliasKey]) {
+          merged[aliasKey] = merged[key];
+        }
+      }
+    }
   }
 
   if (typeof window !== "undefined") {

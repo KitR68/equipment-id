@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -395,14 +395,20 @@
     "state water heaters": {
       "name": "State Water Heaters",
       "serialFormat": "Modern serial numbers are typically 10-11 characters long, starting with four digits (Year and Week). Older formats start with one or two letters followed by digits, where the letter(s) indicate the month and the first two digits indicate the year.",
-      "dateDecoding": "State Industries was acquired by A.O. Smith in 2001, and newer models use A.O. Smith's modern serial formats. For modern formats (e.g., 1210A002243 or 1836111786352), the first two digits represent the year of manufacture, and the third and fourth digits represent the week of manufacture. For older, discontinued formats (e.g., H765662231), the serial number begins with a single letter representing the month (A=Jan, B=Feb, C=Mar, D=Apr, E=May, F=Jun, G=Jul, H=Aug, J=Sep, K=Oct, L=Nov, M=Dec), followed by two digits representing the year. Another discontinued format (e.g., AF04A093001, discontinued July 2004) begins with two letters; the first is a factory code, the second is the month code (same A-M mapping), and the following two digits represent the year.\n\nExamples: Example 1: 1210A002243 → Year 2012, Week 10 (March 2012)\nExample 2: H765662231 → August 1976",
+      "dateDecoding": "State Industries was acquired by A.O. Smith in 2001, and newer models use A.O. Smith's modern serial formats. For modern formats (e.g., 1210A002243 or 1836111786352), the first two digits represent the year of manufacture, and the third and fourth digits represent the week of manufacture. For older, discontinued formats (e.g., H765662231), the serial number begins with a single letter representing the month (A=Jan, B=Feb, C=Mar, D=Apr, E=May, F=Jun, G=Jul, H=Aug, J=Sep, K=Oct, L=Nov, M=Dec), followed by two digits representing the year. Another discontinued format (e.g., AF04A093001, discontinued July 2004) begins with two letters; the first is a factory code, the second is the month code (same A-M mapping), and the following two digits represent the year.\n\nExamples: Example 1: 1210A002243 → Year 2012, Week 10 (March 2012)\nExample 2: H765662231 → August 1976\n\nState Industries (pre-A.O. Smith acquisition) serial format: First 2 digits = year (YY), next 2 digits = week of manufacture (WW), remaining digits = sequential production number. Example: 2339135877683 → 23 = 2023, 39 = week 39 (late September 2023).",
       "sources": [
         "https://www.building-center.org/state-water-heater-age/",
         "https://www.howtolookatahouse.com/Blog/Entries/2018/9/how-can-i-tell-the-age-of-a-state-industries-water-heater-from-the-serial-number.html",
         "seed-knowledge:high-confidence"
       ],
       "updatedAt": "2026-05-23T21:13:54Z",
-      "usageCount": 0
+      "usageCount": 0,
+      "aliases": [
+        "State Industries",
+        "State Industries INC",
+        "State Industries, INC",
+        "State Ind"
+      ]
     },
     "tempstar": {
       "name": "Tempstar",
@@ -477,6 +483,25 @@
         "seed-knowledge:high-confidence"
       ],
       "updatedAt": "2026-05-23T21:13:54Z",
+      "usageCount": 0
+    },
+    "state industries": {
+      "name": "State Industries",
+      "serialFormat": "State Industries (now part of A.O. Smith) serial numbers follow a YYWWXXXXXXXXX format. The first two digits encode the two-digit year (YY), the next two digits encode the week of manufacture (WW, 01–53), and the remaining digits are a sequential production number. Example: 2339135877683 → Year 2023, Week 39.",
+      "dateDecoding": "Digits 1–2 = year (YY, e.g. 23 = 2023). Digits 3–4 = week of manufacture (WW, e.g. 39 = week 39, approximately late September). Remaining digits = sequential unit number. To convert week to approximate month: week 1–4 ≈ January, 5–8 ≈ February, 9–13 ≈ March, 14–17 ≈ April, 18–21 ≈ May, 22–26 ≈ June, 27–30 ≈ July, 31–35 ≈ August, 36–39 ≈ September, 40–43 ≈ October, 44–48 ≈ November, 49–53 ≈ December. Example: 2339135877683 → 23=2023, 39=week 39 → late September 2023.",
+      "modelFormat": "State Industries is now part of A.O. Smith. Product lines include ProLine, Vertex, and Proline Master. Model numbers typically follow A.O. Smith conventions post-acquisition.",
+      "aliases": [
+        "State Industries INC",
+        "State Industries, INC",
+        "State Ind",
+        "State Water Heaters"
+      ],
+      "sources": [
+        "https://www.building-center.org/state-water-heater-age/",
+        "https://www.howtolookatahouse.com/Blog/Entries/2018/9/how-can-i-tell-the-age-of-a-state-industries-water-heater-from-the-serial-number.html",
+        "seed-knowledge:high-confidence"
+      ],
+      "updatedAt": "2026-05-26T00:00:00Z",
       "usageCount": 0
     }
   }
