@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -122,18 +122,6 @@
         "https://www.building-center.org/frigidaire-appliances/",
         "https://www.electrical-forensics.com/MajorAppliances/ElectroluxDateCodes.html",
         "https://homespy.io/frigidaire-serial-lookup",
-        "seed-knowledge:high-confidence"
-      ],
-      "updatedAt": "2026-05-23T21:13:54Z",
-      "usageCount": 0
-    },
-    "ge appliances": {
-      "name": "GE Appliances",
-      "serialFormat": "The standard GE serial number format consists of two letters followed by six numbers, and sometimes ends with an additional letter (e.g., LL123456S). The first two letters are the date code.",
-      "dateDecoding": "GE Appliances serial numbers typically begin with two letters followed by six numbers. The first two letters encode the manufacture date. The first letter represents the month of manufacture (A=Jan, D=Feb, F=Mar, G=Apr, H=May, L=Jun, M=Jul, R=Aug, S=Sep, T=Oct, V=Nov, Z=Dec). The second letter represents the year of manufacture. Because the year letter rotates approximately every 12 years, a single letter can correspond to multiple years (e.g., 'A' can be 2025, 2013, 2001, 1989, etc.). To pinpoint the exact year, you must match the possible years to the approximate age of the appliance or check the print date on the owner's manual. Some older appliances from the 1960s used a two-letter year code (e.g., AY=1965, BZ=1966).\n\nExamples: Example 1: GA123456S → April 2001 or April 2013 (G = April, A = 2001/2013)\nExample 2: DS123456S → February 2009 or February 2021 (D = February, S = 2009/2021)",
-      "sources": [
-        "https://products.geappliances.com/appliance/gea-support-search-content?contentId=16195",
-        "https://partsdr.com/blog/how-to-use-the-serial-number-on-your-ge-appliance-to-determine-its-age",
         "seed-knowledge:high-confidence"
       ],
       "updatedAt": "2026-05-23T21:13:54Z",
@@ -502,6 +490,114 @@
         "seed-knowledge:high-confidence"
       ],
       "updatedAt": "2026-05-26T00:00:00Z",
+      "usageCount": 0
+    },
+    "ge": {
+      "name": "GE Appliances",
+      "category": "Appliances",
+      "aliases": [
+        "GE",
+        "GE Appliance",
+        "GE Appliances",
+        "General Electric"
+      ],
+      "serialFormat": "Two-letter date prefix + sequential digits. Character 1 = Month code (letter, skipping C/E/I/J/K/N/O/P/Q/U). Character 2 = Year code (letter, cycling ~12-year cycle). Remaining characters = sequential production number.",
+      "dateDecoding": "GE Appliances uses a two-letter date code at the start of the serial number.\n\nMONTH (1st character — letter code):\n  A=January, B=February, D=March, F=April, G=May, H=June,\n  L=July, M=August, R=September, S=October, T=November, V=December.\n  Note: the letters C, E, I, J, K, N, O, P, Q, U are intentionally skipped.\n\nYEAR (2nd character — letter code, cycling):\n  The year letter follows a fixed sequence that repeats approximately every 12 years:\n  D=2000/2012/2024, F=2001/2013/2025, G=2002/2014, H=2003/2015,\n  L=2004/2016, A=2005/2017, M=2006/2018, R=2007/2019,\n  S=2008/2020, T=2009/2021, V=2010/2022, Z=2011/2023.\n\nDISAMBIGUATION: Because the year letter cycles, use the model number, product line introduction date, or known production era to determine which cycle applies. For example, a unit with model features consistent with 2005–2011 production should use the first cycle; a unit consistent with 2017–2023 production should use the second cycle. When ambiguous, report both possible years.\n\nEXAMPLE: Serial HA301348P → H (1st char) = June; A (2nd char) = 2005 or 2017. Manufacture date: June 2005 or June 2017 depending on production era.",
+      "modelFormat": "GE model numbers typically start with 2–3 letters indicating the product category (e.g., GTS=top-freezer refrigerator, GTW=top-load washer, JB=range, PFE=French-door refrigerator), followed by digits for capacity/features and letters for color/series.",
+      "examples": [
+        "HA301348P → H=June, A=2005 or 2017 → June 2005 or June 2017",
+        "TT123456A → T=November, T=2009 or 2021 → November 2009 or November 2021",
+        "DS987654B → D=March, S=2008 or 2020 → March 2008 or March 2020",
+        "VZ112233X → V=December, Z=2011 or 2023 → December 2011 or December 2023"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.geapplianceparts.com/store/parts/spec/Serial_Number_Decode.pdf",
+        "https://producthelp.geappliances.com/Refrigerators/GE_Refrigerators/Product_Information_&_Specifications/How_to_Read_GE_Appliances_Serial_Numbers",
+        "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
+      ],
+      "updatedAt": "2026-05-26T20:33:47Z",
+      "usageCount": 0
+    },
+    "ge appliance": {
+      "name": "GE Appliances",
+      "category": "Appliances",
+      "aliases": [
+        "GE",
+        "GE Appliance",
+        "GE Appliances",
+        "General Electric"
+      ],
+      "serialFormat": "Two-letter date prefix + sequential digits. Character 1 = Month code (letter, skipping C/E/I/J/K/N/O/P/Q/U). Character 2 = Year code (letter, cycling ~12-year cycle). Remaining characters = sequential production number.",
+      "dateDecoding": "GE Appliances uses a two-letter date code at the start of the serial number.\n\nMONTH (1st character — letter code):\n  A=January, B=February, D=March, F=April, G=May, H=June,\n  L=July, M=August, R=September, S=October, T=November, V=December.\n  Note: the letters C, E, I, J, K, N, O, P, Q, U are intentionally skipped.\n\nYEAR (2nd character — letter code, cycling):\n  The year letter follows a fixed sequence that repeats approximately every 12 years:\n  D=2000/2012/2024, F=2001/2013/2025, G=2002/2014, H=2003/2015,\n  L=2004/2016, A=2005/2017, M=2006/2018, R=2007/2019,\n  S=2008/2020, T=2009/2021, V=2010/2022, Z=2011/2023.\n\nDISAMBIGUATION: Because the year letter cycles, use the model number, product line introduction date, or known production era to determine which cycle applies. For example, a unit with model features consistent with 2005–2011 production should use the first cycle; a unit consistent with 2017–2023 production should use the second cycle. When ambiguous, report both possible years.\n\nEXAMPLE: Serial HA301348P → H (1st char) = June; A (2nd char) = 2005 or 2017. Manufacture date: June 2005 or June 2017 depending on production era.",
+      "modelFormat": "GE model numbers typically start with 2–3 letters indicating the product category (e.g., GTS=top-freezer refrigerator, GTW=top-load washer, JB=range, PFE=French-door refrigerator), followed by digits for capacity/features and letters for color/series.",
+      "examples": [
+        "HA301348P → H=June, A=2005 or 2017 → June 2005 or June 2017",
+        "TT123456A → T=November, T=2009 or 2021 → November 2009 or November 2021",
+        "DS987654B → D=March, S=2008 or 2020 → March 2008 or March 2020",
+        "VZ112233X → V=December, Z=2011 or 2023 → December 2011 or December 2023"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.geapplianceparts.com/store/parts/spec/Serial_Number_Decode.pdf",
+        "https://producthelp.geappliances.com/Refrigerators/GE_Refrigerators/Product_Information_&_Specifications/How_to_Read_GE_Appliances_Serial_Numbers",
+        "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
+      ],
+      "updatedAt": "2026-05-26T20:33:47Z",
+      "usageCount": 0
+    },
+    "general electric": {
+      "name": "GE Appliances",
+      "category": "Appliances",
+      "aliases": [
+        "GE",
+        "GE Appliance",
+        "GE Appliances",
+        "General Electric"
+      ],
+      "serialFormat": "Two-letter date prefix + sequential digits. Character 1 = Month code (letter, skipping C/E/I/J/K/N/O/P/Q/U). Character 2 = Year code (letter, cycling ~12-year cycle). Remaining characters = sequential production number.",
+      "dateDecoding": "GE Appliances uses a two-letter date code at the start of the serial number.\n\nMONTH (1st character — letter code):\n  A=January, B=February, D=March, F=April, G=May, H=June,\n  L=July, M=August, R=September, S=October, T=November, V=December.\n  Note: the letters C, E, I, J, K, N, O, P, Q, U are intentionally skipped.\n\nYEAR (2nd character — letter code, cycling):\n  The year letter follows a fixed sequence that repeats approximately every 12 years:\n  D=2000/2012/2024, F=2001/2013/2025, G=2002/2014, H=2003/2015,\n  L=2004/2016, A=2005/2017, M=2006/2018, R=2007/2019,\n  S=2008/2020, T=2009/2021, V=2010/2022, Z=2011/2023.\n\nDISAMBIGUATION: Because the year letter cycles, use the model number, product line introduction date, or known production era to determine which cycle applies. For example, a unit with model features consistent with 2005–2011 production should use the first cycle; a unit consistent with 2017–2023 production should use the second cycle. When ambiguous, report both possible years.\n\nEXAMPLE: Serial HA301348P → H (1st char) = June; A (2nd char) = 2005 or 2017. Manufacture date: June 2005 or June 2017 depending on production era.",
+      "modelFormat": "GE model numbers typically start with 2–3 letters indicating the product category (e.g., GTS=top-freezer refrigerator, GTW=top-load washer, JB=range, PFE=French-door refrigerator), followed by digits for capacity/features and letters for color/series.",
+      "examples": [
+        "HA301348P → H=June, A=2005 or 2017 → June 2005 or June 2017",
+        "TT123456A → T=November, T=2009 or 2021 → November 2009 or November 2021",
+        "DS987654B → D=March, S=2008 or 2020 → March 2008 or March 2020",
+        "VZ112233X → V=December, Z=2011 or 2023 → December 2011 or December 2023"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.geapplianceparts.com/store/parts/spec/Serial_Number_Decode.pdf",
+        "https://producthelp.geappliances.com/Refrigerators/GE_Refrigerators/Product_Information_&_Specifications/How_to_Read_GE_Appliances_Serial_Numbers",
+        "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
+      ],
+      "updatedAt": "2026-05-26T20:33:47Z",
+      "usageCount": 0
+    },
+    "ge appliances": {
+      "name": "GE Appliances",
+      "category": "Appliances",
+      "aliases": [
+        "GE",
+        "GE Appliance",
+        "GE Appliances",
+        "General Electric"
+      ],
+      "serialFormat": "Two-letter date prefix + sequential digits. Character 1 = Month code (letter, skipping C/E/I/J/K/N/O/P/Q/U). Character 2 = Year code (letter, cycling ~12-year cycle). Remaining characters = sequential production number.",
+      "dateDecoding": "GE Appliances uses a two-letter date code at the start of the serial number.\n\nMONTH (1st character — letter code):\n  A=January, B=February, D=March, F=April, G=May, H=June,\n  L=July, M=August, R=September, S=October, T=November, V=December.\n  Note: the letters C, E, I, J, K, N, O, P, Q, U are intentionally skipped.\n\nYEAR (2nd character — letter code, cycling):\n  The year letter follows a fixed sequence that repeats approximately every 12 years:\n  D=2000/2012/2024, F=2001/2013/2025, G=2002/2014, H=2003/2015,\n  L=2004/2016, A=2005/2017, M=2006/2018, R=2007/2019,\n  S=2008/2020, T=2009/2021, V=2010/2022, Z=2011/2023.\n\nDISAMBIGUATION: Because the year letter cycles, use the model number, product line introduction date, or known production era to determine which cycle applies. For example, a unit with model features consistent with 2005–2011 production should use the first cycle; a unit consistent with 2017–2023 production should use the second cycle. When ambiguous, report both possible years.\n\nEXAMPLE: Serial HA301348P → H (1st char) = June; A (2nd char) = 2005 or 2017. Manufacture date: June 2005 or June 2017 depending on production era.",
+      "modelFormat": "GE model numbers typically start with 2–3 letters indicating the product category (e.g., GTS=top-freezer refrigerator, GTW=top-load washer, JB=range, PFE=French-door refrigerator), followed by digits for capacity/features and letters for color/series.",
+      "examples": [
+        "HA301348P → H=June, A=2005 or 2017 → June 2005 or June 2017",
+        "TT123456A → T=November, T=2009 or 2021 → November 2009 or November 2021",
+        "DS987654B → D=March, S=2008 or 2020 → March 2008 or March 2020",
+        "VZ112233X → V=December, Z=2011 or 2023 → December 2011 or December 2023"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.geapplianceparts.com/store/parts/spec/Serial_Number_Decode.pdf",
+        "https://producthelp.geappliances.com/Refrigerators/GE_Refrigerators/Product_Information_&_Specifications/How_to_Read_GE_Appliances_Serial_Numbers",
+        "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
+      ],
+      "updatedAt": "2026-05-26T20:33:47Z",
       "usageCount": 0
     }
   }
