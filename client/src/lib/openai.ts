@@ -30,6 +30,13 @@ const OPENAI_BASE = "https://api.openai.com/v1/chat/completions";
 
 export interface NameplateExtraction {
   manufacturer: string | null;
+  /**
+   * Brief product type / description inferred from the nameplate and model number.
+   * Examples: "Automatic Instantaneous Water Heater", "Central Air Conditioning Unit",
+   * "Gas Furnace", "Heat Pump Water Heater", "Commercial Dryer", "Elevator Controller".
+   * Null if the equipment type cannot be determined.
+   */
+  productDescription: string | null;
   modelNumber: string | null;
   serialNumber: string | null;
   /** Date code stamped or printed on the plate (e.g. "2305", "A14", "0519", "WK23-18"). */
@@ -135,9 +142,17 @@ export async function extractNameplate(
     "Extract the following fields from this equipment nameplate photo and",
     "return JSON with this exact shape:",
     "{",
-    '  "manufacturer": string | null,   // brand or maker, e.g. "Carrier"',
-    '  "modelNumber":  string | null,   // exact model/part number as printed',
-    '  "serialNumber": string | null,   // exact serial as printed',
+    '  "manufacturer":        string | null,   // brand or maker, e.g. "Carrier"',
+    '  "productDescription":  string | null,   // brief product type/description, e.g.',
+    '                                           //   "Automatic Instantaneous Water Heater",',
+    '                                           //   "Central Air Conditioning Unit",',
+    '                                           //   "Gas Furnace", "Heat Pump Water Heater",',
+    '                                           //   "Commercial Dryer", "Elevator Controller".',
+    '                                           // Infer from the nameplate text, model number,',
+    '                                           // and any visible product labels. Return null if',
+    '                                           // the equipment type cannot be determined.',
+    '  "modelNumber":         string | null,   // exact model/part number as printed',
+    '  "serialNumber":        string | null,   // exact serial as printed',
     '  "dateCode":     string | null,   // date code stamped or printed on the plate',
     '                                   // (separate from the serial; e.g. "2305", "A14", "0519", "WK23-18")',
     '                                   // return null if no distinct date code field is visible',
@@ -188,6 +203,7 @@ export async function extractNameplate(
   const parsed = parseJson<NameplateExtraction>(content);
   return {
     manufacturer: parsed.manufacturer ?? null,
+    productDescription: parsed.productDescription ?? null,
     modelNumber: parsed.modelNumber ?? null,
     serialNumber: parsed.serialNumber ?? null,
     dateCode: parsed.dateCode ?? null,
@@ -204,6 +220,7 @@ export async function decodeSerial(
   model: string,
   args: {
     manufacturer: string;
+    productDescription?: string | null;
     modelNumber: string | null;
     serialNumber: string;
     dateCode: string | null;
@@ -215,6 +232,7 @@ export async function decodeSerial(
 ): Promise<SerialDecoding> {
   const {
     manufacturer,
+    productDescription,
     modelNumber,
     serialNumber,
     dateCode,
@@ -276,6 +294,7 @@ export async function decodeSerial(
 
   const userText = [
     `Manufacturer: ${manufacturer}`,
+    `Product type: ${productDescription ?? "(unknown)"}`,
     `Model number: ${modelNumber ?? "(unknown)"}`,
     `Serial number: ${serialNumber}`,
     `Date code on plate: ${dateCode ?? "(none)"}`,

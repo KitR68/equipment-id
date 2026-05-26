@@ -1,12 +1,13 @@
 /*
  * Equipment ID — ManualEntryForm.
  * Industrial Dossier styling: label-stamp headers, Fraunces values.
- * Fields: Manufacturer, Model Number, Serial Number, Date Code, Prod Date.
+ * Fields: Manufacturer, Product Description, Model Number, Serial Number, Date Code, Prod Date.
  */
 import { Input } from "@/components/ui/input";
 
 export interface ManualFields {
   manufacturer: string;
+  productDescription: string;
   modelNumber: string;
   serialNumber: string;
   dateCode: string;
@@ -46,6 +47,27 @@ export function ManualEntryForm({ fields, onChange, disabled }: Props) {
           className="font-serif text-base text-primary placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground"
           spellCheck={false}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="me-product-desc" className="label-stamp block">
+          Product Description
+          <span className="ml-2 text-xs font-sans normal-case tracking-normal text-muted-foreground">
+            (optional)
+          </span>
+        </label>
+        <Input
+          id="me-product-desc"
+          value={fields.productDescription}
+          onChange={set("productDescription")}
+          placeholder="e.g. Gas Water Heater, Central Air Conditioner, Gas Furnace…"
+          disabled={disabled}
+          className="font-serif text-base text-primary placeholder:font-sans placeholder:text-sm placeholder:text-muted-foreground"
+          spellCheck={false}
+        />
+        <p className="text-xs text-muted-foreground">
+          Brief equipment type — helps the AI narrow down the correct serial number format.
+        </p>
       </div>
 
       <div className="space-y-1.5">

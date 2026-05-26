@@ -158,6 +158,7 @@ export function exportEquipmentPdf(data: PdfExportData): void {
   // ── Field renderer ─────────────────────────────────────────────────────────
   const fields: Array<{ label: string; value: string | null | undefined; mono?: boolean }> = [
     { label: "MANUFACTURER", value: extraction.manufacturer },
+    { label: "PRODUCT DESCRIPTION", value: extraction.productDescription },
     { label: "MODEL NUMBER", value: extraction.modelNumber, mono: true },
     { label: "SERIAL NUMBER", value: extraction.serialNumber, mono: true },
     { label: "DATE CODE", value: extraction.dateCode, mono: true },

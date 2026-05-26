@@ -73,6 +73,7 @@ interface AnalysisResult {
 
 const EMPTY_MANUAL: ManualFields = {
   manufacturer: "",
+  productDescription: "",
   modelNumber: "",
   serialNumber: "",
   dateCode: "",
@@ -263,6 +264,7 @@ export default function Home() {
         // ── Path B: manual entry — synthetic extraction object ───────────
         extraction = {
           manufacturer: manualFields.manufacturer.trim() || null,
+          productDescription: manualFields.productDescription.trim() || null,
           modelNumber: manualFields.modelNumber.trim() || null,
           serialNumber: manualFields.serialNumber.trim() || null,
           dateCode: manualFields.dateCode.trim() || null,
@@ -271,6 +273,7 @@ export default function Home() {
           qrData: null,
           rawText: [
             manualFields.manufacturer,
+            manualFields.productDescription,
             manualFields.modelNumber,
             manualFields.serialNumber,
             manualFields.dateCode,
@@ -300,6 +303,7 @@ export default function Home() {
           settings.model,
           {
             manufacturer: extraction.manufacturer,
+            productDescription: extraction.productDescription,
             modelNumber: extraction.modelNumber,
             serialNumber: extraction.serialNumber,
             dateCode: extraction.dateCode,
@@ -562,6 +566,14 @@ export default function Home() {
                 value={result.extraction.manufacturer}
                 delayMs={0}
               />
+              {result.extraction.productDescription && (
+                <FieldCard
+                  label="Product Description"
+                  value={result.extraction.productDescription}
+                  determination="Equipment type identified from nameplate text and model number."
+                  delayMs={30}
+                />
+              )}
               <FieldCard
                 label="Model Number"
                 value={result.extraction.modelNumber}
