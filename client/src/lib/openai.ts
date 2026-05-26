@@ -57,6 +57,8 @@ export interface SerialDecoding {
   dateDecoding: string;
   modelFormat?: string;
   sources?: string[];
+  /** Direct URL to the product manual, installation guide, or spec sheet for this model. */
+  manualUrl?: string | null;
 }
 
 function stripFences(text: string): string {
@@ -294,6 +296,10 @@ export async function decodeSerial(
     '  "dateDecoding":    string,          // exactly which characters encode the date and how',
     '  "modelFormat":     string | null,   // optional notes on model number conventions',
     '  "sources":         string[]         // 0-3 source names or URLs you relied on',
+    '  "manualUrl":       string | null    // direct URL to the product manual, installation guide,',
+    '                                      // or spec sheet for this specific model number.',
+    '                                      // Use the manufacturer\'s official website when possible.',
+    '                                      // Return null if no reliable URL is known.',
     "}",
     "Priority order for manufactureDate: prodDate > dateCode > serial decode > printedDate.",
     "If prodDate is present, always parse and use it as the primary date.",
@@ -323,6 +329,7 @@ export async function decodeSerial(
     dateDecoding: parsed.dateDecoding ?? "",
     modelFormat: parsed.modelFormat ?? undefined,
     sources: Array.isArray(parsed.sources) ? parsed.sources : undefined,
+    manualUrl: parsed.manualUrl ?? null,
   };
 }
 

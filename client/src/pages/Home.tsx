@@ -21,6 +21,8 @@ import {
   Upload,
   PenLine,
   QrCode,
+  FileDown,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -54,6 +56,7 @@ import {
   pushCloudEntry,
 } from "@/lib/cloudKnowledge";
 import { applySeedKnowledge } from "@/lib/seedLoader";
+import { exportEquipmentPdf } from "@/lib/pdfExport";
 import { cn } from "@/lib/utils";
 
 type CloudStatus = "checking" | "online" | "offline";
@@ -517,6 +520,20 @@ export default function Home() {
                   </h2>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                    onClick={() =>
+                      exportEquipmentPdf({
+                        extraction: result.extraction,
+                        decoding: result.decoding,
+                      })
+                    }
+                  >
+                    <FileDown size={13} />
+                    Download PDF
+                  </Button>
                   {result.extraction.qrData && (
                     <span className="chip-confidence" data-level="high">
                       QR decoded
@@ -610,6 +627,33 @@ export default function Home() {
                   cloudStatus={cloudStatus}
                   onSave={handleTeach}
                 />
+              )}
+
+              {/* Product manual / documentation link */}
+              {result.decoding?.manualUrl && (
+                <article
+                  className="anim-rise border border-border bg-card grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr]"
+                  style={{ animationDelay: "290ms" }}
+                >
+                  <div className="border-r border-border bg-secondary/40 px-4 py-5 flex items-start gap-2">
+                    <ExternalLink size={13} className="text-primary mt-0.5 shrink-0" />
+                    <span className="label-stamp">Manual</span>
+                  </div>
+                  <div className="px-5 py-5 min-w-0">
+                    <a
+                      href={result.decoding.manualUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline break-all"
+                    >
+                      View Product Manual / Documentation
+                      <ExternalLink size={12} className="shrink-0" />
+                    </a>
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      AI-suggested link — verify it opens the correct document before use.
+                    </p>
+                  </div>
+                </article>
               )}
 
               {/* QR code data card */}
