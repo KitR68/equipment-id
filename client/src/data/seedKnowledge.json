@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -598,6 +598,78 @@
         "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
       ],
       "updatedAt": "2026-05-26T20:33:47Z",
+      "usageCount": 0
+    },
+    "power flame inc": {
+      "name": "Power Flame Inc",
+      "category": "Burners / Combustion Equipment",
+      "aliases": [
+        "Power Flame",
+        "Power Flame Inc",
+        "PowerFlame"
+      ],
+      "serialFormat": "Sequential production number only — the serial number itself does NOT encode the manufacture date. The manufacture date is encoded in the Job Order number, which appears separately on the nameplate.",
+      "dateDecoding": "Power Flame nameplates carry two distinct numbers: a Serial# and a Job Order#. The SERIAL NUMBER is a sequential production number and contains no date information.\n\nThe JOB ORDER NUMBER is the primary source for the manufacture date. Format: J + MM + DD + YY\n  J  = literal prefix character\n  MM = two-digit month (01–12)\n  DD = two-digit day of month (01–31)\n  YY = two-digit year\n\nEXAMPLE: Job Order# J072806 → J + 07 + 28 + 06 → July 28, 2006.\n\nWhen analyzing a Power Flame nameplate, always look for both the 'Serial#' field and the 'Job Order#' (or 'Job No.') field. Use the Job Order number to determine the manufacture date; the serial number alone is insufficient for dating.",
+      "modelFormat": "Power Flame model numbers typically encode burner type, fuel type, and firing rate. Example: C-2-G-10 = C-series, size 2, gas-fired, 10 MMBtu/hr.",
+      "examples": [
+        "Job Order# J072806 → July 28, 2006",
+        "Job Order# J010115 → January 1, 2015",
+        "Job Order# J123121 → December 31, 2021"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.powerflame.com",
+        "https://www.powerflame.com/resources/manuals"
+      ],
+      "updatedAt": "2026-05-29T19:07:25Z",
+      "usageCount": 0
+    },
+    "power flame": {
+      "name": "Power Flame Inc",
+      "category": "Burners / Combustion Equipment",
+      "aliases": [
+        "Power Flame",
+        "Power Flame Inc",
+        "PowerFlame"
+      ],
+      "serialFormat": "Sequential production number only — the serial number itself does NOT encode the manufacture date. The manufacture date is encoded in the Job Order number, which appears separately on the nameplate.",
+      "dateDecoding": "Power Flame nameplates carry two distinct numbers: a Serial# and a Job Order#. The SERIAL NUMBER is a sequential production number and contains no date information.\n\nThe JOB ORDER NUMBER is the primary source for the manufacture date. Format: J + MM + DD + YY\n  J  = literal prefix character\n  MM = two-digit month (01–12)\n  DD = two-digit day of month (01–31)\n  YY = two-digit year\n\nEXAMPLE: Job Order# J072806 → J + 07 + 28 + 06 → July 28, 2006.\n\nWhen analyzing a Power Flame nameplate, always look for both the 'Serial#' field and the 'Job Order#' (or 'Job No.') field. Use the Job Order number to determine the manufacture date; the serial number alone is insufficient for dating.",
+      "modelFormat": "Power Flame model numbers typically encode burner type, fuel type, and firing rate. Example: C-2-G-10 = C-series, size 2, gas-fired, 10 MMBtu/hr.",
+      "examples": [
+        "Job Order# J072806 → July 28, 2006",
+        "Job Order# J010115 → January 1, 2015",
+        "Job Order# J123121 → December 31, 2021"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.powerflame.com",
+        "https://www.powerflame.com/resources/manuals"
+      ],
+      "updatedAt": "2026-05-29T19:07:25Z",
+      "usageCount": 0
+    },
+    "powerflame": {
+      "name": "Power Flame Inc",
+      "category": "Burners / Combustion Equipment",
+      "aliases": [
+        "Power Flame",
+        "Power Flame Inc",
+        "PowerFlame"
+      ],
+      "serialFormat": "Sequential production number only — the serial number itself does NOT encode the manufacture date. The manufacture date is encoded in the Job Order number, which appears separately on the nameplate.",
+      "dateDecoding": "Power Flame nameplates carry two distinct numbers: a Serial# and a Job Order#. The SERIAL NUMBER is a sequential production number and contains no date information.\n\nThe JOB ORDER NUMBER is the primary source for the manufacture date. Format: J + MM + DD + YY\n  J  = literal prefix character\n  MM = two-digit month (01–12)\n  DD = two-digit day of month (01–31)\n  YY = two-digit year\n\nEXAMPLE: Job Order# J072806 → J + 07 + 28 + 06 → July 28, 2006.\n\nWhen analyzing a Power Flame nameplate, always look for both the 'Serial#' field and the 'Job Order#' (or 'Job No.') field. Use the Job Order number to determine the manufacture date; the serial number alone is insufficient for dating.",
+      "modelFormat": "Power Flame model numbers typically encode burner type, fuel type, and firing rate. Example: C-2-G-10 = C-series, size 2, gas-fired, 10 MMBtu/hr.",
+      "examples": [
+        "Job Order# J072806 → July 28, 2006",
+        "Job Order# J010115 → January 1, 2015",
+        "Job Order# J123121 → December 31, 2021"
+      ],
+      "confidence": "high",
+      "sources": [
+        "https://www.powerflame.com",
+        "https://www.powerflame.com/resources/manuals"
+      ],
+      "updatedAt": "2026-05-29T19:07:25Z",
       "usageCount": 0
     }
   }
