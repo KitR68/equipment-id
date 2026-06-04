@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -710,6 +710,114 @@
         "seed-knowledge:user-provided"
       ],
       "updatedAt": "2026-06-04T20:34:18Z",
+      "usageCount": 0
+    },
+    "peerless premier": {
+      "name": "Peerless Premier",
+      "category": "Ranges / Cooktops",
+      "aliases": [
+        "Peerless Premier",
+        "Premier",
+        "Premier Range",
+        "Peerless-Premier"
+      ],
+      "serialFormat": "Peerless Premier / Premier Range serial numbers use the format XXXXXX/MMYY. The digits after the slash encode the manufacture date: MM = month (01-12), and YY = the last two digits of the year.",
+      "dateDecoding": "For Peerless Premier gas ranges, electric ranges, and cooktops, read the date code from the digits after the slash in the serial number. The format is XXXXXX/MMYY, where MM is the two-digit month of manufacture (01 through 12) and YY is the last two digits of the manufacture year. Use product context and label appearance to resolve the century when necessary.\n\nExample: 960394/0590 → 05 = May and 90 = 1990, so the unit was manufactured in May 1990.\n\nPeerless Premier has manufactured American-made ranges in Belleville, Illinois since 1912. The company purchased the Eagle Range product line in 1981.",
+      "modelFormat": "Common model prefixes identify size, fuel, and product family. EAK = 20-inch electric range; ECK = 24-inch electric range; EDK = 30-inch electric range. SAK, SCK, and SDK are the corresponding gas range equivalents.",
+      "equipmentTypes": [
+        "Gas ranges",
+        "Electric ranges",
+        "Cooktops"
+      ],
+      "examples": [
+        "960394/0590 → May 1990"
+      ],
+      "confidence": "high",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T21:10:18Z",
+      "usageCount": 0
+    },
+    "premier": {
+      "name": "Peerless Premier",
+      "category": "Ranges / Cooktops",
+      "aliases": [
+        "Peerless Premier",
+        "Premier",
+        "Premier Range",
+        "Peerless-Premier"
+      ],
+      "serialFormat": "Peerless Premier / Premier Range serial numbers use the format XXXXXX/MMYY. The digits after the slash encode the manufacture date: MM = month (01-12), and YY = the last two digits of the year.",
+      "dateDecoding": "For Peerless Premier gas ranges, electric ranges, and cooktops, read the date code from the digits after the slash in the serial number. The format is XXXXXX/MMYY, where MM is the two-digit month of manufacture (01 through 12) and YY is the last two digits of the manufacture year. Use product context and label appearance to resolve the century when necessary.\n\nExample: 960394/0590 → 05 = May and 90 = 1990, so the unit was manufactured in May 1990.\n\nPeerless Premier has manufactured American-made ranges in Belleville, Illinois since 1912. The company purchased the Eagle Range product line in 1981.",
+      "modelFormat": "Common model prefixes identify size, fuel, and product family. EAK = 20-inch electric range; ECK = 24-inch electric range; EDK = 30-inch electric range. SAK, SCK, and SDK are the corresponding gas range equivalents.",
+      "equipmentTypes": [
+        "Gas ranges",
+        "Electric ranges",
+        "Cooktops"
+      ],
+      "examples": [
+        "960394/0590 → May 1990"
+      ],
+      "confidence": "high",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T21:10:18Z",
+      "usageCount": 0
+    },
+    "premier range": {
+      "name": "Peerless Premier",
+      "category": "Ranges / Cooktops",
+      "aliases": [
+        "Peerless Premier",
+        "Premier",
+        "Premier Range",
+        "Peerless-Premier"
+      ],
+      "serialFormat": "Peerless Premier / Premier Range serial numbers use the format XXXXXX/MMYY. The digits after the slash encode the manufacture date: MM = month (01-12), and YY = the last two digits of the year.",
+      "dateDecoding": "For Peerless Premier gas ranges, electric ranges, and cooktops, read the date code from the digits after the slash in the serial number. The format is XXXXXX/MMYY, where MM is the two-digit month of manufacture (01 through 12) and YY is the last two digits of the manufacture year. Use product context and label appearance to resolve the century when necessary.\n\nExample: 960394/0590 → 05 = May and 90 = 1990, so the unit was manufactured in May 1990.\n\nPeerless Premier has manufactured American-made ranges in Belleville, Illinois since 1912. The company purchased the Eagle Range product line in 1981.",
+      "modelFormat": "Common model prefixes identify size, fuel, and product family. EAK = 20-inch electric range; ECK = 24-inch electric range; EDK = 30-inch electric range. SAK, SCK, and SDK are the corresponding gas range equivalents.",
+      "equipmentTypes": [
+        "Gas ranges",
+        "Electric ranges",
+        "Cooktops"
+      ],
+      "examples": [
+        "960394/0590 → May 1990"
+      ],
+      "confidence": "high",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T21:10:18Z",
+      "usageCount": 0
+    },
+    "peerless-premier": {
+      "name": "Peerless Premier",
+      "category": "Ranges / Cooktops",
+      "aliases": [
+        "Peerless Premier",
+        "Premier",
+        "Premier Range",
+        "Peerless-Premier"
+      ],
+      "serialFormat": "Peerless Premier / Premier Range serial numbers use the format XXXXXX/MMYY. The digits after the slash encode the manufacture date: MM = month (01-12), and YY = the last two digits of the year.",
+      "dateDecoding": "For Peerless Premier gas ranges, electric ranges, and cooktops, read the date code from the digits after the slash in the serial number. The format is XXXXXX/MMYY, where MM is the two-digit month of manufacture (01 through 12) and YY is the last two digits of the manufacture year. Use product context and label appearance to resolve the century when necessary.\n\nExample: 960394/0590 → 05 = May and 90 = 1990, so the unit was manufactured in May 1990.\n\nPeerless Premier has manufactured American-made ranges in Belleville, Illinois since 1912. The company purchased the Eagle Range product line in 1981.",
+      "modelFormat": "Common model prefixes identify size, fuel, and product family. EAK = 20-inch electric range; ECK = 24-inch electric range; EDK = 30-inch electric range. SAK, SCK, and SDK are the corresponding gas range equivalents.",
+      "equipmentTypes": [
+        "Gas ranges",
+        "Electric ranges",
+        "Cooktops"
+      ],
+      "examples": [
+        "960394/0590 → May 1990"
+      ],
+      "confidence": "high",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T21:10:18Z",
       "usageCount": 0
     }
   }
