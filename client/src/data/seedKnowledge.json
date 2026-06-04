@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -670,6 +670,46 @@
         "https://www.powerflame.com/resources/manuals"
       ],
       "updatedAt": "2026-05-29T19:07:25Z",
+      "usageCount": 0
+    },
+    "vissani": {
+      "name": "Vissani (manufactured by Midea)",
+      "category": "Appliances",
+      "aliases": [
+        "Vissani",
+        "Midea"
+      ],
+      "serialFormat": "Date code format WWYYYY_XXXXXXX. The first two digits (WW) are the week number of manufacture (01-52), the next four digits (YYYY) are the four-digit year, the underscore is a separator, and the digits after the underscore are a production sequence or batch number. This format is used on Vissani appliances manufactured by Midea, including refrigerators, freezers, wine coolers, and small appliances.",
+      "dateDecoding": "Vissani is a Home Depot house brand manufactured by Midea. For serial numbers or date codes in the WWYYYY_XXXXXXX format, read the first two digits as the production week and the next four digits as the production year. The portion after the underscore is a production sequence or batch number and does not encode an additional date.\n\nFormat: WWYYYY_XXXXXXX\n  WW      = two-digit week number (01-52)\n  YYYY    = four-digit year\n  XXXXXXX = production sequence or batch number\n\nEXAMPLE: 402024_2009375 → Week 40 of 2024, which corresponds to late September or early October 2024.",
+      "modelFormat": "Vissani models cover Home Depot house-brand appliances manufactured by Midea, including refrigerators, freezers, wine coolers, and small appliances.",
+      "examples": [
+        "402024_2009375 → Week 40 of 2024 (late September/early October 2024)"
+      ],
+      "confidence": "medium",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T20:34:18Z",
+      "usageCount": 0
+    },
+    "midea": {
+      "name": "Vissani (manufactured by Midea)",
+      "category": "Appliances",
+      "aliases": [
+        "Vissani",
+        "Midea"
+      ],
+      "serialFormat": "Date code format WWYYYY_XXXXXXX. The first two digits (WW) are the week number of manufacture (01-52), the next four digits (YYYY) are the four-digit year, the underscore is a separator, and the digits after the underscore are a production sequence or batch number. This format is used on Vissani appliances manufactured by Midea, including refrigerators, freezers, wine coolers, and small appliances.",
+      "dateDecoding": "Vissani is a Home Depot house brand manufactured by Midea. For serial numbers or date codes in the WWYYYY_XXXXXXX format, read the first two digits as the production week and the next four digits as the production year. The portion after the underscore is a production sequence or batch number and does not encode an additional date.\n\nFormat: WWYYYY_XXXXXXX\n  WW      = two-digit week number (01-52)\n  YYYY    = four-digit year\n  XXXXXXX = production sequence or batch number\n\nEXAMPLE: 402024_2009375 → Week 40 of 2024, which corresponds to late September or early October 2024.",
+      "modelFormat": "Vissani models cover Home Depot house-brand appliances manufactured by Midea, including refrigerators, freezers, wine coolers, and small appliances.",
+      "examples": [
+        "402024_2009375 → Week 40 of 2024 (late September/early October 2024)"
+      ],
+      "confidence": "medium",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-06-04T20:34:18Z",
       "usageCount": 0
     }
   }
