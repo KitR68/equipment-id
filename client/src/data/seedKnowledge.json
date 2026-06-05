@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -632,21 +632,20 @@
         "Power Flame Inc",
         "PowerFlame"
       ],
-      "serialFormat": "Power Flame serial numbers encode the manufacture date in the first four digits: MMYY followed by a sequential production number.\n\nFormat: MMYY#####\n  MM    = two-digit month (01-12)\n  YY    = two-digit year\n  ##### = sequential production number (variable length)\n\nEXAMPLE: 020516266 \u2192 02 + 05 + 16266 \u2192 February 2005.\n\nSome nameplates also carry a Job Order number (format: J + MMDDYY) which provides a more precise date including the day. If both are present, the Job Order date is more precise.",
-      "dateDecoding": "Power Flame serial numbers encode the manufacture month and year in the first four digits.\n\nSerial Number Format: MMYY#####\n  MM    = two-digit month (01-12)\n  YY    = two-digit year\n  ##### = sequential production number (variable length)\n\nEXAMPLE: 020516266 \u2192 MM=02, YY=05 \u2192 February 2005.\nEXAMPLE: 110899432 \u2192 MM=11, YY=08 \u2192 November 2008.\n\nAdditionally, some Power Flame nameplates carry a Job Order number:\nJob Order Format: J + MMDDYY\n  J  = literal prefix character\n  MM = two-digit month (01-12)\n  DD = two-digit day of month (01-31)\n  YY = two-digit year\n\nEXAMPLE: Job Order# J072806 \u2192 July 28, 2006.\n\nIf only the serial number is available, use the first four digits (MMYY) for the date. If the Job Order number is also present, it provides a more precise date including the day.",
+      "serialFormat": "MMYY##### \u2014 The FIRST TWO digits are the MONTH (01-12), the THIRD and FOURTH digits are the YEAR (two-digit year), and ALL remaining digits are a sequential production number. IMPORTANT: Do NOT interpret this as YYYY or any other format. Positions 1-2 = MONTH, Positions 3-4 = YEAR, Positions 5+ = sequence number.\n\nEXAMPLE: Serial 020516266\n  Digit 1-2: 02 = Month 02 = February\n  Digit 3-4: 05 = Year 05 = 2005\n  Digit 5-9: 16266 = production sequence\n  RESULT: February 2005\n\nEXAMPLE: Serial 110899432\n  Digit 1-2: 11 = Month 11 = November\n  Digit 3-4: 08 = Year 08 = 2008\n  Digit 5-9: 99432 = production sequence\n  RESULT: November 2008\n\nWARNING: Do NOT read this as a full date (not MMDDYY, not YYYYMMDD, not YYMMDD). Only the first FOUR digits matter for dating: MM then YY.",
+      "dateDecoding": "CRITICAL: Read ONLY the first 4 digits of the serial number.\n  - Digits 1-2 = MONTH (01-12)\n  - Digits 3-4 = YEAR (two-digit, e.g. 05 = 2005, 99 = 1999, 16 = 2016)\n  - Digits 5 onward = IGNORE (production sequence number)\n\nStep-by-step for serial 020516266:\n  1. Take first 2 digits: '02' \u2192 Month = February\n  2. Take next 2 digits: '05' \u2192 Year = 2005\n  3. Ignore '16266' (sequence number)\n  4. Answer: February 2005\n\nDO NOT interpret '0205' as Feb 5th or '0516' as May 2016 or any other combination. The format is strictly MM (2 digits) then YY (2 digits), nothing else.",
       "modelFormat": "Power Flame model numbers typically encode burner type, fuel type, and firing rate. Example: C-2-G-10 = C-series, size 2, gas-fired, 10 MMBtu/hr.",
       "examples": [
-        "Serial# 020516266 \u2192 February 2005",
-        "Serial# 110899432 \u2192 November 2008",
-        "Job Order# J072806 \u2192 July 28, 2006",
-        "Job Order# J010115 \u2192 January 1, 2015"
+        "Serial# 020516266 \u2192 digits 1-2='02'(Feb), digits 3-4='05'(2005) \u2192 February 2005",
+        "Serial# 110899432 \u2192 digits 1-2='11'(Nov), digits 3-4='08'(2008) \u2192 November 2008",
+        "Serial# 061244781 \u2192 digits 1-2='06'(Jun), digits 3-4='12'(2012) \u2192 June 2012"
       ],
       "confidence": "high",
       "sources": [
         "https://www.powerflame.com",
         "https://www.powerflame.com/resources/manuals"
       ],
-      "updatedAt": "2026-06-04T21:15:00Z",
+      "updatedAt": "2026-06-05T00:00:00Z",
       "usageCount": 0
     },
     "powerflame": {
