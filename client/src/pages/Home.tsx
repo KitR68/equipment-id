@@ -56,6 +56,7 @@ import {
   pushCloudEntry,
 } from "@/lib/cloudKnowledge";
 import { applySeedKnowledge } from "@/lib/seedLoader";
+import { deterministicDecode } from "@/lib/deterministicDecode";
 import { exportEquipmentPdf } from "@/lib/pdfExport";
 import { cn } from "@/lib/utils";
 
@@ -292,27 +293,43 @@ export default function Home() {
       if (extraction.manufacturer && extraction.serialNumber) {
         const knownEntry = getManufacturerEntry(kb, extraction.manufacturer);
         usedKnownFormat = Boolean(knownEntry);
-        setProgress(
-          knownEntry
-            ? `Decoding serial with learned ${extraction.manufacturer} format…`
-            : `Researching ${extraction.manufacturer} serial format…`,
+
+        // Try deterministic (code-based) decode first — no AI needed
+        const detResult = deterministicDecode(
+          extraction.manufacturer,
+          extraction.serialNumber,
+          extraction.dateCode,
         );
 
-        decoding = await decodeSerial(
-          settings.openaiApiKey,
-          settings.model,
-          {
-            manufacturer: extraction.manufacturer,
-            productDescription: extraction.productDescription,
-            modelNumber: extraction.modelNumber,
-            serialNumber: extraction.serialNumber,
-            dateCode: extraction.dateCode,
-            prodDate: extraction.prodDate,
-            printedDate: extraction.printedDate,
-            qrData: extraction.qrData,
-            knownEntry,
-          },
-        );
+        if (detResult) {
+          // Deterministic decode succeeded — use it directly
+          decoding = detResult;
+          usedKnownFormat = true;
+          setProgress(`Decoded ${extraction.manufacturer} serial (deterministic)…`);
+        } else {
+          // Fall back to AI-based decoding
+          setProgress(
+            knownEntry
+              ? `Decoding serial with learned ${extraction.manufacturer} format…`
+              : `Researching ${extraction.manufacturer} serial format…`,
+          );
+
+          decoding = await decodeSerial(
+            settings.openaiApiKey,
+            settings.model,
+            {
+              manufacturer: extraction.manufacturer,
+              productDescription: extraction.productDescription,
+              modelNumber: extraction.modelNumber,
+              serialNumber: extraction.serialNumber,
+              dateCode: extraction.dateCode,
+              prodDate: extraction.prodDate,
+              printedDate: extraction.printedDate,
+              qrData: extraction.qrData,
+              knownEntry,
+            },
+          );
+        }
 
         if (decoding.serialFormat) {
           const nextKb = upsertManufacturerEntry(kb, {
