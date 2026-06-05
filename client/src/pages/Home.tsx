@@ -290,14 +290,14 @@ export default function Home() {
       let decoding: SerialDecoding | undefined;
       let usedKnownFormat = false;
 
-      if (extraction.manufacturer && extraction.serialNumber) {
+      if (extraction.manufacturer && (extraction.serialNumber || extraction.dateCode)) {
         const knownEntry = getManufacturerEntry(kb, extraction.manufacturer);
         usedKnownFormat = Boolean(knownEntry);
 
         // Try deterministic (code-based) decode first — no AI needed
         const detResult = deterministicDecode(
           extraction.manufacturer,
-          extraction.serialNumber,
+          extraction.serialNumber || "",
           extraction.dateCode,
         );
 
@@ -321,7 +321,7 @@ export default function Home() {
               manufacturer: extraction.manufacturer,
               productDescription: extraction.productDescription,
               modelNumber: extraction.modelNumber,
-              serialNumber: extraction.serialNumber,
+              serialNumber: extraction.serialNumber || extraction.dateCode || "",
               dateCode: extraction.dateCode,
               prodDate: extraction.prodDate,
               printedDate: extraction.printedDate,

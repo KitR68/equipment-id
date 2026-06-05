@@ -91,15 +91,27 @@ function decodeVissani(_serial: string, dateCode?: string | null): DecoderResult
 }
 
 /**
- * Registry of deterministic decoders keyed by manufacturer slug.
+ * Registry of deterministic decoders.
+ * Each entry has a list of keywords — if ALL keywords in any entry
+ * are found in the normalized manufacturer name, that decoder is used.
  */
-const DECODERS: Record<string, DecoderFn> = {
-  "power flame": decodePowerFlame,
-  "power flame inc": decodePowerFlame,
-  "powerflame": decodePowerFlame,
-  "vissani": decodeVissani,
-  "midea": decodeVissani,
-};
+const DECODER_RULES: Array<{ keywords: string[]; decoder: DecoderFn }> = [
+  { keywords: ["power", "flame"], decoder: decodePowerFlame },
+  { keywords: ["vissani"], decoder: decodeVissani },
+  { keywords: ["midea"], decoder: decodeVissani },
+];
+
+/**
+ * Normalize a manufacturer name for matching: lowercase, strip punctuation,
+ * collapse whitespace.
+ */
+function normalizeForMatch(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "") // remove all punctuation
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 /**
  * Attempt a deterministic (code-based) decode for a given manufacturer.
@@ -111,12 +123,20 @@ export function deterministicDecode(
   serialNumber: string,
   dateCode?: string | null,
 ): SerialDecoding | null {
-  const key = manufacturer.trim().toLowerCase().replace(/\s+/g, " ");
+  const normalized = normalizeForMatch(manufacturer);
 
-  const decoder = DECODERS[key];
-  if (!decoder) return null;
+  // Find a matching decoder by checking if all keywords appear in the name
+  let matchedDecoder: DecoderFn | null = null;
+  for (const rule of DECODER_RULES) {
+    if (rule.keywords.every((kw) => normalized.includes(kw))) {
+      matchedDecoder = rule.decoder;
+      break;
+    }
+  }
 
-  const result = decoder(serialNumber, dateCode);
+  if (!matchedDecoder) return null;
+
+  const result = matchedDecoder(serialNumber, dateCode);
   if (!result) return null;
 
   return {
