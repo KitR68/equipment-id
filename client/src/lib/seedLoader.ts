@@ -24,7 +24,7 @@ interface SeedFile {
   entries: Record<string, ManufacturerEntry>;
 }
 
-const SEED_FLAG_KEY = "equipment-id:seed-imported:v5";
+const SEED_FLAG_KEY = "equipment-id:seed-imported:v7";
 
 const seed = seedRaw as SeedFile;
 
@@ -54,7 +54,13 @@ export function applySeedKnowledge(
     const key = manufacturerKey(entry.name);
     if (!key) continue;
     if (merged[key]) {
-      // User-learned or cloud-synced rule already exists; do not overwrite.
+      // Overwrite if the seed entry is newer than the existing one.
+      const existingDate = merged[key].updatedAt ? new Date(merged[key].updatedAt).getTime() : 0;
+      const seedDate = entry.updatedAt ? new Date(entry.updatedAt).getTime() : 0;
+      if (seedDate > existingDate) {
+        merged[key] = { ...entry };
+        seededCount += 1;
+      }
       continue;
     }
     merged[key] = {
