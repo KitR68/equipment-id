@@ -299,6 +299,7 @@ export default function Home() {
           extraction.manufacturer,
           extraction.serialNumber || "",
           extraction.dateCode,
+          extraction.modelNumber,
         );
 
         if (detResult) {

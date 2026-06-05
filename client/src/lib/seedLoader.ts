@@ -18,13 +18,13 @@ import {
 } from "./storage";
 
 interface SeedFile {
-  version: number;
+  version: number | string;
   generatedAt: string;
   description?: string;
   entries: Record<string, ManufacturerEntry>;
 }
 
-const SEED_FLAG_KEY = "equipment-id:seed-imported:v8";
+const SEED_FLAG_KEY = "equipment-id:seed-imported:v9";
 
 const seed = seedRaw as SeedFile;
 
@@ -95,6 +95,6 @@ export function seedManufacturerNames(): string[] {
   return Object.values(seed.entries).map((e) => e.name);
 }
 
-export function seedVersion(): number {
+export function seedVersion(): number | string {
   return seed.version;
 }
