@@ -94,7 +94,8 @@ async function chat(opts: {
       model: opts.model,
       messages: opts.messages,
       max_tokens: opts.maxTokens ?? 900,
-      temperature: 0.1,
+      temperature: 0,
+      seed: 42,
       ...(opts.responseJson
         ? { response_format: { type: "json_object" } }
         : {}),
@@ -257,14 +258,22 @@ export async function decodeSerial(
   const knownBlock = knownEntry
     ? [
         "",
-        "KNOWN FORMAT (already learned from a previous analysis — trust it):",
-        `- serialFormat: ${knownEntry.serialFormat}`,
-        `- dateDecoding: ${knownEntry.dateDecoding}`,
+        "═══════════════════════════════════════════════════════════════",
+        "MANDATORY DECODING FORMAT — YOU MUST FOLLOW THIS EXACTLY:",
+        "═══════════════════════════════════════════════════════════════",
+        `serialFormat: ${knownEntry.serialFormat}`,
+        "",
+        `dateDecoding: ${knownEntry.dateDecoding}`,
         knownEntry.modelFormat
-          ? `- modelFormat: ${knownEntry.modelFormat}`
+          ? `\nmodelFormat: ${knownEntry.modelFormat}`
           : "",
-        "Apply this format to decode the serial. If the serial does not match,",
-        "say so in `determination` and set confidence='low'.",
+        "",
+        "INSTRUCTIONS: Apply the above format MECHANICALLY to the serial number.",
+        "Do NOT use any other interpretation. Do NOT guess an alternative format.",
+        "Do NOT try to read the serial as a date in YYYYMMDD, MMDDYYYY, or any",
+        "format other than what is specified above.",
+        "If the serial does not match the expected pattern, say so and set confidence='low'.",
+        "═══════════════════════════════════════════════════════════════",
       ]
         .filter(Boolean)
         .join("\n")
