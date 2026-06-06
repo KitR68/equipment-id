@@ -50,6 +50,13 @@ export interface NameplateExtraction {
   prodDate: string | null;
   /** Any explicitly printed manufacture date (month/year or full date). */
   printedDate: string | null;
+  /**
+   * Horsepower rating of the equipment. Extracted when the equipment is
+   * identified as a circulating pump, motor, blower, or similar HP-rated device.
+   * Read from fields labelled HP, H.P., HORSEPOWER, or inferred from the nameplate.
+   * Return null if not visible or not applicable.
+   */
+  hpRating: string | null;
   /** Raw decoded QR code content (if any). */
   qrData: string | null;
   rawText: string;
@@ -169,6 +176,13 @@ export async function extractNameplate(
     '                                   // Return the value EXACTLY as printed (do not reformat).',
     '                                   // Return null if no such labelled field is present.',
     '  "printedDate":  string | null,   // any other explicitly printed manufacture date not captured above',
+    '  "hpRating":     string | null,   // horsepower rating. Extract ONLY when the equipment is',
+    '                                   // a circulating pump, boiler feed pump, motor, blower, or',
+    '                                   // similar HP-rated device. Look for labels: HP, H.P.,',
+    '                                   // HORSEPOWER, or a fractional/decimal value near such a label',
+    '                                   // (e.g. "1/6", "1/4", "1/3", "1/2", "3/4", "1", "1.5", "2").',
+    '                                   // Return the value as printed (e.g. "1/6 HP" or "1/4").',
+    '                                   // Return null if not a pump/motor or HP is not visible.',
     '  "rawText":      string,          // every line of text you can read, joined with " | "',
     '  "notes":        string | null    // any caveats (glare, partial text, multiple plates, QR content used, etc.)',
     "}",
@@ -215,6 +229,7 @@ export async function extractNameplate(
     dateCode: parsed.dateCode ?? null,
     prodDate: parsed.prodDate ?? null,
     printedDate: parsed.printedDate ?? null,
+    hpRating: parsed.hpRating ?? null,
     qrData: qrData ?? null,
     rawText: parsed.rawText ?? "",
     notes: parsed.notes ?? undefined,

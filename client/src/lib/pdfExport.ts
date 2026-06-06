@@ -163,6 +163,7 @@ export function exportEquipmentPdf(data: PdfExportData): void {
     { label: "SERIAL NUMBER", value: extraction.serialNumber, mono: true },
     { label: "DATE CODE", value: extraction.dateCode, mono: true },
     { label: "PROD DATE", value: extraction.prodDate, mono: true },
+    { label: "HP RATING", value: extraction.hpRating, mono: true },
     { label: "MANUFACTURE DATE", value: decoding?.manufactureDate ?? extraction.printedDate },
   ];
 

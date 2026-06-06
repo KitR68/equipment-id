@@ -271,6 +271,7 @@ export default function Home() {
           dateCode: manualFields.dateCode.trim() || null,
           prodDate: manualFields.prodDate.trim() || null,
           printedDate: null,
+          hpRating: null,
           qrData: null,
           rawText: [
             manualFields.manufacturer,
@@ -623,6 +624,14 @@ export default function Home() {
                 confidence={result.extraction.prodDate ? "high" : undefined}
                 delayMs={210}
               />
+              {result.extraction.hpRating && (
+                <FieldCard
+                  label="HP Rating"
+                  value={result.extraction.hpRating}
+                  determination="Horsepower rating extracted from the equipment nameplate."
+                  delayMs={215}
+                />
+              )}
               <FieldCard
                 label="Manufacture Date"
                 value={
