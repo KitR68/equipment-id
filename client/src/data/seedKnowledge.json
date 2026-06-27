@@ -1,5 +1,5 @@
 {
-  "version": "8",
+  "version": 9,
   "generatedAt": "2026-05-23T21:13:54Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
@@ -818,6 +818,50 @@
         "seed-knowledge:user-provided"
       ],
       "updatedAt": "2026-06-04T21:10:18Z",
+      "usageCount": 0
+    },
+    "superstor": {
+      "name": "SuperStor (PVI Industries)",
+      "serialFormat": "Serial numbers follow the format: [Letter][DD][Letter][NNNN]. Example: J08K1546. The nameplate also includes a separate 'Date' field showing MM/YY and a 'Year' field with a letter code.",
+      "dateDecoding": "SuperStor (manufactured by PVI Industries) commercial water heaters (SuperStor Ultra, SuperStor Contender, SSU series) encode the manufacture date directly on the nameplate in a 'Date' field.\n\n**Primary Method \u2014 Date Field on Nameplate:**\nLook for a field labeled \"Date\" on the nameplate. It shows the date in MM/YY format (e.g., \"11/08\" = November 2008). The \"Year\" field next to it contains a letter code that corresponds to the year.\n\nYear letter codes:\n- K = 2008\n- L = 2009\n- M = 2010\n- N = 2011\n- P = 2012\n- R = 2013\n- S = 2014\n- T = 2015\n- U = 2016\n- V = 2017\n- W = 2018\n- X = 2019\n- Y = 2020\n- A = 2021\n- B = 2022\n- C = 2023\n- D = 2024\n- E = 2025\n- F = 2026\n\n**Secondary Method \u2014 Serial Number:**\nThe serial number format is [Letter][DD][Letter][NNNN]. The first letter may indicate the month, the two digits may indicate the year, and the second letter may be a plant/line code. However, the explicit Date field on the nameplate is the most reliable source.\n\n**IMPORTANT:** Always use the \"Date\" field (MM/YY) on the nameplate as the primary date source. Only fall back to serial number decoding if no Date field is present.",
+      "sources": [
+        "Nameplate analysis",
+        "PVI Industries product documentation"
+      ],
+      "updatedAt": "2026-06-27T18:00:00.000Z",
+      "usageCount": 0
+    },
+    "superstor ultra": {
+      "name": "SuperStor (PVI Industries)",
+      "serialFormat": "Serial numbers follow the format: [Letter][DD][Letter][NNNN]. Example: J08K1546. The nameplate also includes a separate 'Date' field showing MM/YY and a 'Year' field with a letter code.",
+      "dateDecoding": "SuperStor (manufactured by PVI Industries) commercial water heaters (SuperStor Ultra, SuperStor Contender, SSU series) encode the manufacture date directly on the nameplate in a 'Date' field.\n\n**Primary Method \u2014 Date Field on Nameplate:**\nLook for a field labeled \"Date\" on the nameplate. It shows the date in MM/YY format (e.g., \"11/08\" = November 2008). The \"Year\" field next to it contains a letter code that corresponds to the year.\n\nYear letter codes:\n- K = 2008\n- L = 2009\n- M = 2010\n- N = 2011\n- P = 2012\n- R = 2013\n- S = 2014\n- T = 2015\n- U = 2016\n- V = 2017\n- W = 2018\n- X = 2019\n- Y = 2020\n- A = 2021\n- B = 2022\n- C = 2023\n- D = 2024\n- E = 2025\n- F = 2026\n\n**Secondary Method \u2014 Serial Number:**\nThe serial number format is [Letter][DD][Letter][NNNN]. The first letter may indicate the month, the two digits may indicate the year, and the second letter may be a plant/line code. However, the explicit Date field on the nameplate is the most reliable source.\n\n**IMPORTANT:** Always use the \"Date\" field (MM/YY) on the nameplate as the primary date source. Only fall back to serial number decoding if no Date field is present.",
+      "sources": [
+        "Nameplate analysis",
+        "PVI Industries product documentation"
+      ],
+      "updatedAt": "2026-06-27T18:00:00.000Z",
+      "usageCount": 0
+    },
+    "pvi industries": {
+      "name": "SuperStor (PVI Industries)",
+      "serialFormat": "Serial numbers follow the format: [Letter][DD][Letter][NNNN]. Example: J08K1546. The nameplate also includes a separate 'Date' field showing MM/YY and a 'Year' field with a letter code.",
+      "dateDecoding": "SuperStor (manufactured by PVI Industries) commercial water heaters (SuperStor Ultra, SuperStor Contender, SSU series) encode the manufacture date directly on the nameplate in a 'Date' field.\n\n**Primary Method \u2014 Date Field on Nameplate:**\nLook for a field labeled \"Date\" on the nameplate. It shows the date in MM/YY format (e.g., \"11/08\" = November 2008). The \"Year\" field next to it contains a letter code that corresponds to the year.\n\nYear letter codes:\n- K = 2008\n- L = 2009\n- M = 2010\n- N = 2011\n- P = 2012\n- R = 2013\n- S = 2014\n- T = 2015\n- U = 2016\n- V = 2017\n- W = 2018\n- X = 2019\n- Y = 2020\n- A = 2021\n- B = 2022\n- C = 2023\n- D = 2024\n- E = 2025\n- F = 2026\n\n**Secondary Method \u2014 Serial Number:**\nThe serial number format is [Letter][DD][Letter][NNNN]. The first letter may indicate the month, the two digits may indicate the year, and the second letter may be a plant/line code. However, the explicit Date field on the nameplate is the most reliable source.\n\n**IMPORTANT:** Always use the \"Date\" field (MM/YY) on the nameplate as the primary date source. Only fall back to serial number decoding if no Date field is present.",
+      "sources": [
+        "Nameplate analysis",
+        "PVI Industries product documentation"
+      ],
+      "updatedAt": "2026-06-27T18:00:00.000Z",
+      "usageCount": 0
+    },
+    "pvi": {
+      "name": "SuperStor (PVI Industries)",
+      "serialFormat": "Serial numbers follow the format: [Letter][DD][Letter][NNNN]. Example: J08K1546. The nameplate also includes a separate 'Date' field showing MM/YY and a 'Year' field with a letter code.",
+      "dateDecoding": "SuperStor (manufactured by PVI Industries) commercial water heaters (SuperStor Ultra, SuperStor Contender, SSU series) encode the manufacture date directly on the nameplate in a 'Date' field.\n\n**Primary Method \u2014 Date Field on Nameplate:**\nLook for a field labeled \"Date\" on the nameplate. It shows the date in MM/YY format (e.g., \"11/08\" = November 2008). The \"Year\" field next to it contains a letter code that corresponds to the year.\n\nYear letter codes:\n- K = 2008\n- L = 2009\n- M = 2010\n- N = 2011\n- P = 2012\n- R = 2013\n- S = 2014\n- T = 2015\n- U = 2016\n- V = 2017\n- W = 2018\n- X = 2019\n- Y = 2020\n- A = 2021\n- B = 2022\n- C = 2023\n- D = 2024\n- E = 2025\n- F = 2026\n\n**Secondary Method \u2014 Serial Number:**\nThe serial number format is [Letter][DD][Letter][NNNN]. The first letter may indicate the month, the two digits may indicate the year, and the second letter may be a plant/line code. However, the explicit Date field on the nameplate is the most reliable source.\n\n**IMPORTANT:** Always use the \"Date\" field (MM/YY) on the nameplate as the primary date source. Only fall back to serial number decoding if no Date field is present.",
+      "sources": [
+        "Nameplate analysis",
+        "PVI Industries product documentation"
+      ],
+      "updatedAt": "2026-06-27T18:00:00.000Z",
       "usageCount": 0
     }
   }

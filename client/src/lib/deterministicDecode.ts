@@ -934,6 +934,55 @@ function decodeKenmore(serial: string, dateCode?: string | null, modelNumber?: s
 }
 
 /**
+ * SuperStor / PVI Industries — date is on the nameplate as MM/YY in a "Date" field.
+ * Serial format: [Letter][DD][Letter][NNNN] e.g. J08K1546
+ * The Date field (MM/YY) is the primary source. If no dateCode is provided,
+ * fall back to serial: first letter = month (A=Jan..L=Dec), digits 2-3 = year.
+ */
+function decodeSuperStor(serial: string, dateCode?: string | null): DecoderResult | null {
+  // Primary: use dateCode field if present (format: MM/YY)
+  if (dateCode) {
+    const dcMatch = dateCode.trim().match(/^(\d{1,2})\/(\d{2})$/);
+    if (dcMatch) {
+      const month = parseInt(dcMatch[1], 10);
+      const yy = parseInt(dcMatch[2], 10);
+      if (validMonth(month)) {
+        const year = expandTwoDigitYear(yy);
+        return makeMonthResult(
+          "SuperStor (PVI Industries)",
+          serial,
+          year,
+          month,
+          `Date field on nameplate shows MM/YY format.`,
+          `The "Date" field on the nameplate directly encodes the manufacture date as MM/YY.`,
+          `Date field "${dateCode}" = ${MONTHS[month]} ${year}`,
+        );
+      }
+    }
+  }
+
+  // Fallback: serial format [Letter][DD][Letter][NNNN]
+  const cleaned = serial.trim().toUpperCase();
+  const match = cleaned.match(/^([A-L])(\d{2})[A-Z](\d{4})$/);
+  if (!match) return null;
+
+  const monthLetter = match[1].charCodeAt(0) - 64; // A=1, B=2, ..., L=12
+  const yy = parseInt(match[2], 10);
+  if (!validMonth(monthLetter)) return null;
+  const year = expandTwoDigitYear(yy);
+
+  return makeMonthResult(
+    "SuperStor (PVI Industries)",
+    serial,
+    year,
+    monthLetter,
+    `[Letter][YY][Letter][NNNN] — first letter = month (A=Jan..L=Dec), digits 2-3 = year.`,
+    `First letter encodes month (A=January through L=December), next two digits encode year.`,
+    `letter "${match[1]}" = ${MONTHS[monthLetter]}; digits "${match[2]}" = ${year}`,
+  );
+}
+
+/**
  * Registry of deterministic decoders.
  * Each entry has a list of keywords — if ALL keywords in any entry
  * are found in the normalized manufacturer name, that decoder is used.
@@ -979,6 +1028,9 @@ const DECODER_RULES: Array<{ keywords: string[]; decoder: DecoderFn }> = [
   { keywords: ["whirlpool"], decoder: decodeWhirlpool },
   { keywords: ["maytag"], decoder: decodeMaytag },
   { keywords: ["kenmore"], decoder: decodeKenmore },
+  { keywords: ["superstor"], decoder: decodeSuperStor },
+  { keywords: ["super", "stor"], decoder: decodeSuperStor },
+  { keywords: ["pvi"], decoder: decodeSuperStor },
 ];
 
 /**
