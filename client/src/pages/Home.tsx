@@ -272,6 +272,7 @@ export default function Home() {
           prodDate: manualFields.prodDate.trim() || null,
           printedDate: null,
           hpRating: null,
+          fuelType: null,
           qrData: null,
           rawText: [
             manualFields.manufacturer,
@@ -630,6 +631,14 @@ export default function Home() {
                   value={result.extraction.hpRating}
                   determination="Horsepower rating extracted from the equipment nameplate."
                   delayMs={215}
+                />
+              )}
+              {result.extraction.fuelType && (
+                <FieldCard
+                  label="Fuel Type"
+                  value={result.extraction.fuelType}
+                  determination="Fuel type extracted from the equipment nameplate."
+                  delayMs={220}
                 />
               )}
               <FieldCard

@@ -57,6 +57,12 @@ export interface NameplateExtraction {
    * Return null if not visible or not applicable.
    */
   hpRating: string | null;
+  /**
+   * Fuel type explicitly stated on a fuel-burning equipment nameplate.
+   * Examples: "Natural Gas", "Propane", "LP Gas", "No. 2 Fuel Oil", "Dual Fuel".
+   * Returned only when printed or clearly stated on a boiler, furnace, or similar appliance.
+   */
+  fuelType: string | null;
   /** Raw decoded QR code content (if any). */
   qrData: string | null;
   rawText: string;
@@ -183,6 +189,12 @@ export async function extractNameplate(
     '                                   // (e.g. "1/6", "1/4", "1/3", "1/2", "3/4", "1", "1.5", "2").',
     '                                   // Return the value as printed (e.g. "1/6 HP" or "1/4").',
     '                                   // Return null if not a pump/motor or HP is not visible.',
+    '  "fuelType":     string | null,   // fuel explicitly shown for a boiler, furnace, or other',
+    '                                   // fuel-burning appliance. Look for FUEL TYPE, FUEL, GAS TYPE,',
+    '                                   // NATURAL GAS, PROPANE, LP, L.P. GAS, OIL, FUEL OIL, or DUAL FUEL.',
+    '                                   // Return the fuel wording as printed (e.g. "Natural Gas",',
+    '                                   // "LP Gas", "No. 2 Fuel Oil", or "Dual Fuel").',
+    '                                   // Return null when no fuel type is visible or applicable.',
     '  "rawText":      string,          // every line of text you can read, joined with " | "',
     '  "notes":        string | null    // any caveats (glare, partial text, multiple plates, QR content used, etc.)',
     "}",
@@ -197,6 +209,8 @@ export async function extractNameplate(
     "  Do NOT put a labeled date code value into serialNumber.",
     "- prodDate is specifically for fields with a label like PROD DATE or MFG DATE.",
     "  If the same date appears in the serial, still capture it in prodDate if it has its own label.",
+    "- Extract fuelType only when the plate explicitly states the fuel for a boiler, furnace, or similar fuel-burning appliance.",
+    "  Do not infer fuel type from product family, model name, piping, or capacity; return the wording printed on the plate.",
     qrBlock,
     "Return JSON only — no prose, no code fences.",
   ]
@@ -230,6 +244,7 @@ export async function extractNameplate(
     prodDate: parsed.prodDate ?? null,
     printedDate: parsed.printedDate ?? null,
     hpRating: parsed.hpRating ?? null,
+    fuelType: parsed.fuelType ?? null,
     qrData: qrData ?? null,
     rawText: parsed.rawText ?? "",
     notes: parsed.notes ?? undefined,

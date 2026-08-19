@@ -24,7 +24,7 @@ interface SeedFile {
   entries: Record<string, ManufacturerEntry>;
 }
 
-const SEED_FLAG_KEY = "equipment-id:seed-imported:v10";
+const SEED_FLAG_KEY = "equipment-id:seed-imported:v11";
 
 const seed = seedRaw as SeedFile;
 

@@ -164,6 +164,7 @@ export function exportEquipmentPdf(data: PdfExportData): void {
     { label: "DATE CODE", value: extraction.dateCode, mono: true },
     { label: "PROD DATE", value: extraction.prodDate, mono: true },
     { label: "HP RATING", value: extraction.hpRating, mono: true },
+    { label: "FUEL TYPE", value: extraction.fuelType },
     { label: "MANUFACTURE DATE", value: decoding?.manufactureDate ?? extraction.printedDate },
   ];
 

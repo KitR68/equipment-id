@@ -934,6 +934,101 @@ function decodeKenmore(serial: string, dateCode?: string | null, modelNumber?: s
 }
 
 /**
+ * Bosch Thermotechnik GmbH / Buderus — two boiler serial-number date styles.
+ *
+ * Style 1 (post-2010 Bosch): Ignore dashes and read characters 5-7 as YMM,
+ * where Y is 0=2010, 1=2011, etc. and MM is month 01-12.
+ * Style 2 (pre-2010 Buderus/Bosch Thermotechnik): The second dash-separated
+ * group contains YY...DDD; the first two digits are year and its final three
+ * digits are Julian day of year.
+ */
+function decodeBoschThermotechnikBuderus(serial: string): DecoderResult | null {
+  const trimmed = serial.trim();
+  if (!trimmed) return null;
+
+  const now = new Date();
+  const ensurePastDate = (year: number, month: number, day: number): Date | null => {
+    let safeYear = year;
+    let date = new Date(Date.UTC(safeYear, month - 1, day));
+    if (
+      date.getUTCFullYear() !== safeYear ||
+      date.getUTCMonth() + 1 !== month ||
+      date.getUTCDate() !== day
+    ) {
+      return null;
+    }
+
+    // A serial-derived manufacture date must never be in the future. A
+    // two-digit year beyond the current era is interpreted as the prior century.
+    if (date.getTime() > now.getTime()) {
+      safeYear -= 100;
+      date = new Date(Date.UTC(safeYear, month - 1, day));
+    }
+
+    return date;
+  };
+
+  // Style 2 must be considered first because its long second group is a
+  // distinguishing feature and the serial otherwise also has a numeric prefix.
+  const groups = trimmed.split("-").map((group) => group.trim());
+  const secondGroup = groups[1];
+  if (secondGroup && /^\d{5,}$/.test(secondGroup)) {
+    const yyText = secondGroup.substring(0, 2);
+    const julianText = secondGroup.substring(secondGroup.length - 3);
+    const julianDay = parseInt(julianText, 10);
+    if (julianDay >= 1 && julianDay <= 366) {
+      let year = 2000 + parseInt(yyText, 10);
+      if (year > now.getUTCFullYear()) year -= 100;
+      let date = new Date(Date.UTC(year, 0, julianDay));
+      if (date.getUTCFullYear() === year) {
+        if (date.getTime() > now.getTime()) {
+          year -= 100;
+          date = new Date(Date.UTC(year, 0, julianDay));
+        }
+        if (date.getUTCFullYear() !== year) return null;
+        const month = date.getUTCMonth() + 1;
+        const day = date.getUTCDate();
+        return {
+          manufactureDate: `${year}-${padded(month)}-${padded(day)}`,
+          determination: `Serial ${serial}: second dash-separated group "${secondGroup}" uses the legacy Buderus YY...DDD format. Its first two digits "${yyText}" = ${year}; its last three digits "${julianText}" = Julian day ${julianDay}, which is ${MONTHS[month]} ${day}, ${year}.`,
+          confidence: "high",
+          serialFormat: `Pre-2010 Buderus / Bosch Thermotechnik format — the second dash-separated group has 5+ digits; first 2 = year (YY), final 3 = Julian day (DDD).`,
+          dateDecoding: `Style 2: in the second dash-separated group, digits 1-2 identify the two-digit year and the final 3 digits identify the Julian day. Example: 253000-09070-00002-5030062 → 09 + day 070 = March 11, 2009.`,
+        };
+      }
+    }
+  }
+
+  // Style 1: ignore dashes but preserve every other printed character when
+  // counting positions, so positions 5-7 remain the specified YMM code.
+  const dashless = trimmed.replace(/[\s-]/g, "").toUpperCase();
+  if (dashless.length < 7) return null;
+  const dateCode = dashless.substring(4, 7);
+  const match = dateCode.match(/^(\d)(\d{2})$/);
+  if (!match) return null;
+
+  const yearCode = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  if (!validMonth(month)) return null;
+
+  let year = 2010 + yearCode;
+  if (year > now.getUTCFullYear()) year -= 10;
+  const date = ensurePastDate(year, month, 1);
+  if (!date) return null;
+  year = date.getUTCFullYear();
+
+  return makeMonthResult(
+    "Bosch Thermotechnik / Buderus",
+    serial,
+    year,
+    month,
+    `Post-2010 Bosch format — ignoring dashes, positions 5-7 are YMM: first digit = year code (0=2010, 1=2011, etc.), next 2 digits = month.`,
+    `Style 1: ignore dashes and read characters 5-7 as YMM. The first digit maps 0=2010, 1=2011, 2=2012, and so on; the last two digits are the month. Example: 3540-112-000001-T111M01973 → 112 = December 2011.`,
+    `ignoring dashes, characters 5-7 are "${dateCode}": "${match[1]}" = ${year}; "${match[2]}" = ${MONTHS[month]}`,
+  );
+}
+
+/**
  * SuperStor / PVI Industries — date is on the nameplate as MM/YY in a "Date" field.
  * Serial format: [Letter][DD][Letter][NNNN] e.g. J08K1546
  * The Date field (MM/YY) is the primary source. If no dateCode is provided,
@@ -1028,6 +1123,9 @@ const DECODER_RULES: Array<{ keywords: string[]; decoder: DecoderFn }> = [
   { keywords: ["whirlpool"], decoder: decodeWhirlpool },
   { keywords: ["maytag"], decoder: decodeMaytag },
   { keywords: ["kenmore"], decoder: decodeKenmore },
+  { keywords: ["bosch", "thermotechnik"], decoder: decodeBoschThermotechnikBuderus },
+  { keywords: ["buderus"], decoder: decodeBoschThermotechnikBuderus },
+  { keywords: ["bosch", "boiler"], decoder: decodeBoschThermotechnikBuderus },
   { keywords: ["superstor"], decoder: decodeSuperStor },
   { keywords: ["super", "stor"], decoder: decodeSuperStor },
   { keywords: ["pvi"], decoder: decodeSuperStor },

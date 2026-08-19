@@ -1,6 +1,6 @@
 {
-  "version": 9,
-  "generatedAt": "2026-05-23T21:13:54Z",
+  "version": 11,
+  "generatedAt": "2026-08-19T00:00:00.000Z",
   "description": "Pre-loaded manufacturer serial-number decoding rules. Compiled from manufacturer service docs and established dating references. Merged into the user's local knowledge base on first run if the manufacturer is not already present.",
   "entries": {
     "a.o. smith": {
@@ -64,16 +64,32 @@
       "updatedAt": "2026-05-23T21:13:54Z",
       "usageCount": 0
     },
-    "buderus (bosch)": {
-      "name": "Buderus (Bosch)",
-      "serialFormat": "Modern Bosch/Buderus boilers use a format where the 5th, 6th, and 7th digits combined represent the manufacture date (e.g., 3540-112-000001-T111M01973). Older \"legacy\" Buderus boilers use an 18-27 digit format divided by dashes (e.g., 63036333-00-7080-3241 or 253000-08065-00040-77470007354).",
-      "dateDecoding": "For modern Bosch/Buderus boilers (produced since 2010), the manufacture date is determined by a 3-digit code located in the 5th, 6th, and 7th positions of the serial number combined (ignoring dashes). The first digit of this 3-digit code represents the year, and the next two digits represent the month. For example, a code of '112' means the year is 2011 and the month is December. For older \"legacy\" Buderus boilers (produced prior to 2010), the serial numbers are typically 18-27 digits long with clear patterns divided by dashes (e.g., 63036333-00-7080-3241 or 253000-08065-00040-77470007354). For these older models, the exact year of manufacture cannot be reliably determined from the serial number alone, and it is recommended to contact Bosch Technical Support or use the ANSI/CSA standards listed on the data tag to estimate the year of manufacture within 4-6 years.\n\nExamples: Example 1 (Modern): 3540-112-000001-T111M01973 \u2192 December 2011 (from the '112' code in the 5th-7th positions). Example 2 (Legacy): 63036333-00-7080-3241 \u2192 Unverified (contact Bosch Technical Support).",
-      "sources": [
-        "https://www.building-center.org/bosch-hvac-age/",
-        "https://www.building-center.org/buderus-hvac-age/",
-        "seed-knowledge:medium-confidence"
+    "bosch thermotechnik buderus": {
+      "name": "Bosch Thermotechnik GmbH / Buderus",
+      "aliases": [
+        "Bosch Thermotechnik",
+        "Bosch Thermotechnik GmbH",
+        "Buderus",
+        "Bosch Boilers"
       ],
-      "updatedAt": "2026-05-23T21:13:54Z",
+      "category": "Boilers / Water Heaters",
+      "equipmentTypes": [
+        "Boilers",
+        "Water heaters"
+      ],
+      "serialFormat": "Style 1 — post-2010 Bosch-branded boilers: dash-separated serials such as 3540-112-000001-T111M01973 or 2940-455-00015-7735003001. Ignoring dashes, digits 5-7 are YMM: the first digit is the year code (0=2010, 1=2011, etc.) and the next two digits are the month (01-12). Style 2 — pre-2010 Buderus-branded and Bosch Thermotechnik boilers: dash-separated serials such as 253000-09070-00002-5030062. The second dash-separated group has five or more digits; its first two digits are YY and its final three digits are the Julian day of the year.",
+      "dateDecoding": "Bosch Thermotechnik / Buderus boilers use two date-coded serial styles.\n\n1. **Style 1 — post-2010 Bosch-branded:** Remove dashes, then read positions 5-7 as YMM. The Y digit maps 0=2010, 1=2011, 2=2012, and so on; MM is 01-12. Example: 3540-112-000001-T111M01973 → code 112 → December 2011. A candidate YMM code must include a valid month (01-12); serials such as 2940-455-00015-7735003001 do not satisfy that validation and are not decoded by this rule.\n\n2. **Style 2 — pre-2010 Buderus / Bosch Thermotechnik:** Read the second dash-separated group when it contains five or more digits. Its first two digits are the two-digit year (YY) and its final three digits are the Julian day (DDD). Example: 253000-09070-00002-5030062 → 09 + day 070 → March 11, 2009. Example: 253000-08065-00040-77470007354 → 08 + day 065 → March 5, 2008.\n\nA deterministic decoder validates the month and Julian day and prevents decoded dates from being in the future.",
+      "examples": [
+        "3540-112-000001-T111M01973 → December 2011",
+        "2940-455-00015-7735003001 → not decoded: YMM month 55 is invalid",
+        "253000-09070-00002-5030062 → March 11, 2009",
+        "253000-08065-00040-77470007354 → March 5, 2008"
+      ],
+      "confidence": "high",
+      "sources": [
+        "seed-knowledge:user-provided"
+      ],
+      "updatedAt": "2026-08-19T00:00:00.000Z",
       "usageCount": 0
     },
     "burnham (u.s. boiler company)": {
