@@ -22,6 +22,7 @@ interface DecoderResult {
   confidence: "high" | "medium" | "low";
   serialFormat: string;
   dateDecoding: string;
+  sources?: string[];
 }
 
 type DecoderFn = (
@@ -105,23 +106,25 @@ const YORK_MONTHS: Record<string, number> = {
 };
 
 const GE_MONTHS: Record<string, number> = {
-  A: 1, B: 2, D: 3, F: 4, G: 5, H: 6,
-  L: 7, M: 8, R: 9, S: 10, T: 11, V: 12,
+  A: 1, D: 2, F: 3, G: 4, H: 5, L: 6,
+  M: 7, R: 8, S: 9, T: 10, V: 11, Z: 12,
 };
 
+// Published GE chart, not an extrapolated year sequence.
+// https://products.geappliances.com/appliance/gea-support-search-content?contentId=16195
 const GE_YEARS: Record<string, number[]> = {
-  D: [2000, 2012, 2024],
-  F: [2001, 2013, 2025],
-  G: [2002, 2014],
-  H: [2003, 2015],
-  L: [2004, 2016],
-  A: [2005, 2017],
-  M: [2006, 2018],
-  R: [2007, 2019],
-  S: [2008, 2020],
-  T: [2009, 2021],
-  V: [2010, 2022],
-  Z: [2011, 2023],
+  A: [1944, 1977, 1989, 2001, 2013, 2025],
+  D: [1947, 1978, 1990, 2002, 2014, 2026],
+  F: [1949, 1979, 1991, 2003, 2015],
+  G: [1950, 1980, 1992, 2004, 2016],
+  H: [1951, 1981, 1993, 2005, 2017],
+  L: [1954, 1970, 1982, 1994, 2006, 2018],
+  M: [1955, 1971, 1983, 1995, 2007, 2019],
+  R: [1958, 1972, 1984, 1996, 2008, 2020],
+  S: [1959, 1973, 1985, 1997, 2009, 2021],
+  T: [1960, 1974, 1986, 1998, 2010, 2022],
+  V: [1975, 1987, 1999, 2011, 2023],
+  Z: [1976, 1988, 2000, 2012, 2024],
 };
 
 const BRADFORD_WHITE_YEARS: Record<string, number[]> = {
@@ -646,23 +649,42 @@ function decodeSamsung(serial: string): DecoderResult | null {
   );
 }
 
-function decodeGe(serial: string): DecoderResult | null {
-  const cleaned = cleanAlnum(serial);
-  const match = cleaned.match(/^([A-Z])([A-Z])/);
+function decodeGe(
+  serial: string,
+  _dateCode?: string | null,
+  modelNumber?: string | null,
+): DecoderResult | null {
+  // This rule is for GE household-appliance serials, not auxiliary label codes.
+  const cleaned = serial.trim().toUpperCase();
+  const match = cleaned.match(/^([A-Z])([A-Z])\d{6}[A-Z]?$/);
   if (!match) return null;
 
   const month = GE_MONTHS[match[1]];
-  const years = GE_YEARS[match[2]];
-  if (!validMonth(month) || !years) return null;
+  const publishedYears = GE_YEARS[match[2]];
+  if (!validMonth(month) || !publishedYears) return null;
 
-  return makeAmbiguousMonthResult(
-    serial,
-    years,
-    month,
-    `GE two-letter date prefix — character 1 = month code, character 2 = cyclic year code.`,
-    `GE Appliances date code: first character maps to the month (A=Jan, B=Feb, D=Mar, F=Apr, G=May, H=Jun, L=Jul, M=Aug, R=Sep, S=Oct, T=Nov, V=Dec); second character maps to a repeating year cycle.`,
-    `first character "${match[1]}" = ${MONTHS[month]}; second character "${match[2]}" = ${formatYearList(years)}`,
-  );
+  const now = new Date();
+  const currentMonth = now.getFullYear() * 12 + now.getMonth();
+  let years = publishedYears.filter((year) => year * 12 + month - 1 <= currentMonth);
+  const model = modelNumber?.trim().toUpperCase();
+  // Scope the verified September 2019 introduction to these two exact models.
+  // Do not infer a production era from a general GTS prefix or choose the latest year.
+  const knownModel = model === "GTS17DTNRWW" || model === "GTS17DTNNRWW";
+  if (knownModel) {
+    years = years.filter((year) => year * 12 + month - 1 >= 2019 * 12 + 8);
+  }
+  if (years.length === 0) return null;
+
+  const serialFormat = "GE household-appliance 8/9-character serial: two letters + six digits + optional trailing letter; character 1 = month, character 2 = repeating year code.";
+  const dateDecoding = "GE household appliances: A=January, D=February, F=March, G=April, H=May, L=June, M=July, R=August, S=September, T=October, V=November, Z=December. The second letter uses GE's published repeating year table: A=2025/2013/2001; D=2026/2014/2002; F=2015/2003; G=2016/2004; H=2017/2005; L=2018/2006; M=2019/2007; R=2020/2008; S=2021/2009; T=2022/2010; V=2023/2011; Z=2024/2012, with earlier years in the official chart. Do not select the latest cycle without evidence or decode auxiliary part/publication codes as dates. The GTS17DTNRWW series (engineering model GTS17DTNNRWW) began September 2019; only those exact models use that production-start filter. Unknown model eras remain ambiguous.";
+  const detail = `first character "${match[1]}" = ${MONTHS[month]}; second character "${match[2]}" = ${formatYearList(years)}${knownModel ? ` after excluding dates before model ${model}'s September 2019 production start` : ""}`;
+  const sources = ["https://products.geappliances.com/appliance/gea-support-search-content?contentId=16195"];
+  if (knownModel) sources.push("https://products.geappliances.com/appliance/gea-specs/GTS17DTNRWW/troubleshoot");
+
+  const result = years.length === 1
+    ? makeMonthResult("GE Appliances", serial, years[0], month, serialFormat, dateDecoding, detail)
+    : makeAmbiguousMonthResult(serial, years, month, serialFormat, dateDecoding, detail);
+  return { ...result, sources };
 }
 
 function decodePeerlessBoilers(serial: string): DecoderResult | null {
@@ -1173,7 +1195,7 @@ export function deterministicDecode(
   return {
     ...result,
     modelFormat: undefined,
-    sources: ["Deterministic decoder (programmatic)"],
+    sources: result.sources ?? ["Deterministic decoder (programmatic)"],
     manualUrl: null,
   };
 }

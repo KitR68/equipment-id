@@ -1,98 +1,70 @@
-"""
-Update the GE Appliances entry in seedKnowledge.json with the full
-letter-based month/year coding system, aliases, and bump seed version to v3.
-
-The seed file uses a dict-of-entries structure:
-  { "version": 2, "entries": { "ge appliances": {...}, ... } }
-"""
-import json, pathlib, datetime
+"""Refresh only GE household-appliance seed guidance from the official GE chart."""
+import datetime
+import json
+import pathlib
 
 SEED_PATH = pathlib.Path(__file__).parent.parent / "client/src/data/seedKnowledge.json"
+GE_NAMES = {"ge", "ge appliance", "ge appliances", "general electric", "general electric company"}
+SOURCES = [
+    "https://products.geappliances.com/appliance/gea-support-search-content?contentId=16195",
+    "https://products.geappliances.com/appliance/gea-specs/GTS17DTNRWW/troubleshoot",
+]
+SERIAL_FORMAT = (
+    "GE household-appliance serials only: 8 characters (two letters + six digits) "
+    "or 9 characters with an optional final letter. Character 1 = month; character 2 "
+    "= repeating year code. Other formats and auxiliary label codes need separate evidence."
+)
+DATE_DECODING = (
+    "Use the SERIAL NUMBER, not an auxiliary part/publication code, to date GE household appliances.\n\n"
+    "MONTH (first letter): A=January, D=February, F=March, G=April, H=May, L=June, "
+    "M=July, R=August, S=September, T=October, V=November, Z=December. B is not a month code.\n\n"
+    "YEAR (second letter; official published years, not an extrapolation): "
+    "A=2025/2013/2001/1989/1977/1944; D=2026/2014/2002/1990/1978/1947; "
+    "F=2015/2003/1991/1979/1949; G=2016/2004/1992/1980/1950; "
+    "H=2017/2005/1993/1981/1951; L=2018/2006/1994/1982/1970/1954; "
+    "M=2019/2007/1995/1983/1971/1955; R=2020/2008/1996/1984/1972/1958; "
+    "S=2021/2009/1997/1985/1973/1959; T=2022/2010/1998/1986/1974/1960; "
+    "V=2023/2011/1999/1987/1975; Z=2024/2012/2000/1988/1976. "
+    "Historical whole-prefix exceptions such as DB=1968 require the separate official chart; "
+    "do not generalize modern cycling rules to them.\n\n"
+    "DISAMBIGUATION: Codes repeat approximately every 12 years. Exclude future dates and "
+    "use verified model production dates or a reliably explicit manufacture date to select "
+    "the cycle. Never simply select the newest year. Report possible years when the model "
+    "era is unknown; request a clear nameplate if the evidence conflicts.\n\n"
+    "VERIFIED MODEL ERA: GE lists GTS17DTNRWW as manufactured September 2019-present. "
+    "For that retail model and its GTS17DTNNRWW engineering model only, exclude dates before "
+    "September 2019. A DD prefix then resolves to February 2026 as of October 2026, not "
+    "March 2024 or February 2014. Do not apply this era to all GE refrigerators. "
+    "The published serial code identifies month/year, not an exact day."
+)
 
-seed = json.loads(SEED_PATH.read_text())
-entries: dict = seed["entries"]
 
-# ── Build the updated GE entry (matches ManufacturerEntry shape) ──────────────
-ge_entry = {
-    "name": "GE Appliances",
-    "category": "Appliances",
-    "aliases": ["GE", "GE Appliance", "GE Appliances", "General Electric"],
-    "serialFormat": (
-        "Two-letter date prefix + sequential digits. "
-        "Character 1 = Month code (letter, skipping C/E/I/J/K/N/O/P/Q/U). "
-        "Character 2 = Year code (letter, cycling ~12-year cycle). "
-        "Remaining characters = sequential production number."
-    ),
-    "dateDecoding": (
-        "GE Appliances uses a two-letter date code at the start of the serial number.\n\n"
-        "MONTH (1st character — letter code):\n"
-        "  A=January, B=February, D=March, F=April, G=May, H=June,\n"
-        "  L=July, M=August, R=September, S=October, T=November, V=December.\n"
-        "  Note: the letters C, E, I, J, K, N, O, P, Q, U are intentionally skipped.\n\n"
-        "YEAR (2nd character — letter code, cycling):\n"
-        "  The year letter follows a fixed sequence that repeats approximately every 12 years:\n"
-        "  D=2000/2012/2024, F=2001/2013/2025, G=2002/2014, H=2003/2015,\n"
-        "  L=2004/2016, A=2005/2017, M=2006/2018, R=2007/2019,\n"
-        "  S=2008/2020, T=2009/2021, V=2010/2022, Z=2011/2023.\n\n"
-        "DISAMBIGUATION: Because the year letter cycles, use the model number, product line "
-        "introduction date, or known production era to determine which cycle applies. "
-        "For example, a unit with model features consistent with 2005–2011 production should "
-        "use the first cycle; a unit consistent with 2017–2023 production should use the "
-        "second cycle. When ambiguous, report both possible years.\n\n"
-        "EXAMPLE: Serial HA301348P → H (1st char) = June; A (2nd char) = 2005 or 2017. "
-        "Manufacture date: June 2005 or June 2017 depending on production era."
-    ),
-    "modelFormat": (
-        "GE model numbers typically start with 2–3 letters indicating the product category "
-        "(e.g., GTS=top-freezer refrigerator, GTW=top-load washer, JB=range, PFE=French-door "
-        "refrigerator), followed by digits for capacity/features and letters for color/series."
-    ),
-    "examples": [
-        "HA301348P → H=June, A=2005 or 2017 → June 2005 or June 2017",
-        "TT123456A → T=November, T=2009 or 2021 → November 2009 or November 2021",
-        "DS987654B → D=March, S=2008 or 2020 → March 2008 or March 2020",
-        "VZ112233X → V=December, Z=2011 or 2023 → December 2011 or December 2023"
-    ],
-    "confidence": "high",
-    "sources": [
-        "https://www.geapplianceparts.com/store/parts/spec/Serial_Number_Decode.pdf",
-        "https://producthelp.geappliances.com/Refrigerators/GE_Refrigerators/Product_Information_&_Specifications/How_to_Read_GE_Appliances_Serial_Numbers",
-        "https://www.appliancepartspros.com/repair-help/ge-model-number-search.html"
-    ],
-    "updatedAt": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-    "usageCount": 0
-}
+def main():
+    seed = json.loads(SEED_PATH.read_text())
+    updated_at = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+    count = 0
+    for entry in seed["entries"].values():
+        if entry.get("name", "").strip().lower() not in GE_NAMES:
+            continue
+        entry.update({
+            "serialFormat": SERIAL_FORMAT,
+            "dateDecoding": DATE_DECODING,
+            "sources": SOURCES,
+            "examples": [
+                "DD123456 + model GTS17DTNNRWW -> February 2026 as of October 2026",
+                "HA123456P -> May; year A=2025/2013/2001 or earlier (model era required)",
+                "TT123456A -> October; year T=2022/2010/1998 or earlier (model era required)",
+                "VZ123456X -> November; year Z=2024/2012/2000 or earlier (model era required)",
+            ],
+            "updatedAt": updated_at,
+        })
+        count += 1
+    if not count:
+        raise RuntimeError("No existing GE entries found; refusing an unscoped seed update")
+    seed["version"] = int(seed["version"]) + 1
+    SEED_PATH.write_text(json.dumps(seed, indent=2, ensure_ascii=False) + "\n")
+    print(f"Updated {count} existing GE entries; seed version {seed['version']}")
 
-# ── Replace or insert the GE entry ───────────────────────────────────────────
-old_key = None
-for k in list(entries.keys()):
-    if "ge" in k and ("appliance" in k or k == "ge"):
-        old_key = k
-        break
 
-if old_key:
-    print(f"  Replacing existing entry at key {old_key!r}")
-    del entries[old_key]
-else:
-    print("  No existing GE entry found — inserting new entry.")
-
-entries["ge appliances"] = ge_entry
-
-# ── Also register alias keys pointing to the same entry ──────────────────────
-# (The seedLoader registers these at runtime; we add them here for completeness
-#  so direct key lookups on "ge" or "general electric" also resolve.)
-for alias in ge_entry["aliases"]:
-    alias_key = alias.strip().lower()
-    if alias_key != "ge appliances":
-        entries[alias_key] = ge_entry
-        print(f"  Added alias key: {alias_key!r}")
-
-# ── Bump seed version ─────────────────────────────────────────────────────────
-old_version = seed.get("version", 2)
-seed["version"] = 3
-print(f"  Seed version: {old_version} → 3")
-print(f"  Total entry keys: {len(entries)}")
-
-seed["entries"] = entries
-SEED_PATH.write_text(json.dumps(seed, indent=2, ensure_ascii=False) + "\n")
-print(f"  Written: {SEED_PATH}")
+if __name__ == "__main__":
+    main()
